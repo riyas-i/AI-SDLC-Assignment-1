@@ -39,3 +39,6 @@
 - Judgement calls the user may want to confirm (recorded in Assumptions): "done is final" covers
   status only (edits/deletes allowed); due date is not updatable; same-status changes are
   rejected; tags are lower-cased.
+- 2026-11-13 clarification: the first three of those calls were confirmed or changed by the
+  user (see spec Clarifications). The due date is now updatable. Re-validated: 16/16 items still
+  pass.

@@ -15,6 +15,15 @@ todo -> in_progress -> done, and todo -> done directly. done is final; any chang
 rejected with an error. IDs are sequential integers and are never reused after a delete. Data is
 saved to tasks.json. If the file is corrupt, show a clear error and do not overwrite it."
 
+## Clarifications
+
+### Session 2026-11-13
+
+- Q: Once a task is `done`, can the user still edit its title, priority or tags, or delete it? → A: Yes. Only status changes are blocked; edits and deletion remain allowed.
+- Q: Should plain `todo list` (no `--status` filter) show `done` tasks? → A: Yes. Show all tasks, including `done`.
+- Q: Should the user be able to change or remove a task's due date after creation? → A: Yes. `todo update <id> --due YYYY-MM-DD` changes it; `--due ""` clears it.
+- Q: Is setting a task to the status it already has an error or a no-op? → A: An error with exit code 1; `done → done` gets the "is done" error.
+
 ## Command Interface (reference for all acceptance criteria)
 
 The tool is invoked as `todo <command> [arguments]`. Acceptance criteria below use this syntax.
@@ -23,7 +32,7 @@ The tool is invoked as `todo <command> [arguments]`. Acceptance criteria below u
 |---------|------|
 | Add | `todo add "<title>" [--priority low\|medium\|high] [--tags <t1,t2,...>] [--due YYYY-MM-DD]` |
 | List | `todo list [--tag <tag>] [--status todo\|in_progress\|done]` |
-| Update | `todo update <id> [--title "<title>"] [--priority <p>] [--tags <t1,t2,...>]` |
+| Update | `todo update <id> [--title "<title>"] [--priority <p>] [--tags <t1,t2,...>] [--due YYYY-MM-DD]` |
 | Delete | `todo delete <id>` |
 | Change status | `todo status <id> <todo\|in_progress\|done>` |
 | Help | `todo --help` |
@@ -102,7 +111,7 @@ combination (AC-019 – AC-024).
 
 ### User Story 4 - Edit and remove tasks (Priority: P3)
 
-As a developer, I fix a task's title, priority or tags, or delete it entirely.
+As a developer, I fix a task's title, priority, tags or due date, or delete it entirely.
 
 **Why this priority**: Corrections are routine but secondary to capture and tracking.
 
@@ -153,7 +162,9 @@ unchanged and exit code is 2 (AC-042 – AC-046).
 
 ### Functional Requirements
 
-Acceptance criteria are numbered globally (AC-001 … AC-048). Unless stated otherwise, each
+Acceptance criteria are numbered globally (AC-001 … AC-054). AC-049 – AC-054 were added during
+clarification and sit under the requirement they test, so they appear out of numeric order.
+Unless stated otherwise, each
 criterion starts from an empty working directory with no `tasks.json`, and "the task list" means
 the output of `todo list`.
 
@@ -215,10 +226,17 @@ the output of `todo list`.
 
 #### Listing tasks
 
-- **FR-006**: `todo list` MUST print every task in the line format defined in Command Interface,
-  or `No tasks found.` when there is nothing to show.
+- **FR-006**: `todo list` without filters MUST print every task, whatever its status (including
+  `done`), in the line format defined in Command Interface, or `No tasks found.` when there is
+  nothing to show.
   - **AC-017**: **Given** no tasks, **When** `todo list` runs, **Then** stdout is
     `No tasks found.` and exit code is 0.
+  - **AC-051**: **Given** task 1 `Write report` in `todo`, task 2 `Draft plan` in `in_progress`
+    and task 3 `File taxes` in `done` (all medium, no tags, no due date), **When** `todo list`
+    runs, **Then** stdout is exactly these three lines and exit code is 0:
+    `1 | todo | medium | Write report | tags: - | due: -`,
+    `2 | in_progress | medium | Draft plan | tags: - | due: -`,
+    `3 | done | medium | File taxes | tags: - | due: -`.
 
 - **FR-007**: The list MUST be sorted by priority (high, then medium, then low); tasks with equal
   priority appear in creation order (ascending id).
@@ -248,9 +266,9 @@ the output of `todo list`.
 
 #### Updating and deleting tasks
 
-- **FR-010**: Users MUST be able to update a task's title, priority and/or tags. Only the given
-  fields change. New values follow the same rules as FR-002–FR-004. `--tags ""` removes all tags.
-  At least one field MUST be given.
+- **FR-010**: Users MUST be able to update a task's title, priority, tags and/or due date. Only
+  the given fields change. New values follow the same rules as FR-002–FR-005. `--tags ""` removes
+  all tags and `--due ""` removes the due date. At least one field MUST be given.
   - **AC-025**: **Given** task 1 `Buy milk` (medium, tags `home`), **When**
     `todo update 1 --title "Buy oat milk"` runs, **Then** stdout is `Updated task 1.`, exit code
     is 0, and the task list is `1 | todo | medium | Buy oat milk | tags: home | due: -`.
@@ -262,7 +280,16 @@ the output of `todo list`.
   - **AC-028**: **Given** task 1 `Buy milk`, **When** `todo update 1 --title ""` runs, **Then**
     stderr is `Error: title must be 1-100 characters.`, exit code is 1, and task 1 is unchanged.
   - **AC-029**: **Given** task 1, **When** `todo update 1` runs with no fields, **Then** stderr is
-    `Error: nothing to update; provide --title, --priority or --tags.` and exit code is 1.
+    `Error: nothing to update; provide --title, --priority, --tags or --due.` and exit code is 1.
+  - **AC-052**: **Given** task 1 `Pay rent` with no due date, **When**
+    `todo update 1 --due 2026-12-15` runs, **Then** stdout is `Updated task 1.`, exit code is 0,
+    and the task list is `1 | todo | medium | Pay rent | tags: - | due: 2026-12-15`.
+  - **AC-053**: **Given** task 1 with due date `2026-12-01`, **When** `todo update 1 --due ""`
+    runs, **Then** exit code is 0 and the task's line shows `due: -`.
+  - **AC-054**: **Given** task 1 with due date `2026-12-01`, **When**
+    `todo update 1 --due 2026-13-01` runs, **Then** stderr is
+    `Error: due date must be a valid date in YYYY-MM-DD format.`, exit code is 1, and the due date
+    is still `2026-12-01`.
 
 - **FR-011**: Users MUST be able to delete a task by id.
   - **AC-030**: **Given** tasks 1 and 2, **When** `todo delete 1` runs, **Then** stdout is
@@ -295,14 +322,20 @@ the output of `todo list`.
   - **AC-037**: **Given** task 1 in `todo`, **When** `todo status 1 todo` runs, **Then** stderr is
     `Error: cannot change status from todo to todo.` and exit code is 1.
 
-- **FR-015**: `done` is final: any status change on a `done` task MUST be rejected. Status values
-  MUST be one of `todo`, `in_progress`, `done`.
+- **FR-015**: `done` is final: any status change on a `done` task MUST be rejected. Editing a
+  `done` task's title, priority, tags or due date (FR-010) and deleting it (FR-011) remain allowed and do
+  not change its status. Status values MUST be one of `todo`, `in_progress`, `done`.
   - **AC-038**: **Given** task 1 in `done`, **When** `todo status 1 todo`, `todo status 1
     in_progress`, or `todo status 1 done` runs, **Then** each prints to stderr
     `Error: task 1 is done; its status cannot be changed.`, exits with code 1, and task 1 remains
     `done`.
   - **AC-039**: **Given** task 1 in `todo`, **When** `todo status 1 finished` runs, **Then**
     stderr is `Error: status must be one of: todo, in_progress, done.` and exit code is 1.
+  - **AC-049**: **Given** task 1 `Buy milk` in `done`, **When**
+    `todo update 1 --title "Buy oat milk"` runs, **Then** stdout is `Updated task 1.`, exit code
+    is 0, and the task list is `1 | done | medium | Buy oat milk | tags: - | due: -`.
+  - **AC-050**: **Given** task 1 in `done`, **When** `todo delete 1` runs, **Then** stdout is
+    `Deleted task 1.` and exit code is 0.
 
 #### Identifiers
 
@@ -365,7 +398,7 @@ the output of `todo list`.
 
 ### Measurable Outcomes
 
-- **SC-001**: 100% of acceptance criteria AC-001 – AC-048 pass as automated tests.
+- **SC-001**: 100% of acceptance criteria AC-001 – AC-054 pass as automated tests.
 - **SC-002**: Each command completes in under 1 second with 1,000 tasks stored.
 - **SC-003**: In every corrupt-file and failed-save scenario, 0 bytes of existing task data are
   lost or altered.
@@ -378,11 +411,6 @@ the output of `todo list`.
 
 - Single user, single machine; no concurrent access to `tasks.json` from multiple processes.
 - `tasks.json` lives in the current working directory; there is no option to relocate it in v1.
-- "done is final" restricts **status** changes only. Title, priority and tags of a `done` task may
-  still be edited, and a `done` task may be deleted.
-- Changing a task's status to the status it already has is treated as an invalid transition.
-- The due date can be set only when adding a task; it cannot be updated or cleared in v1 (the
-  request lists only title, priority and tags as updatable).
 - Tags are normalised to lower case, and tag filtering is case-insensitive.
 - Creation order is the same as id order, since ids are assigned sequentially.
 - No reminders, overdue warnings, recurring tasks, search, or colour output in v1.
@@ -390,3 +418,8 @@ the output of `todo list`.
 ## Change Log
 
 - 2026-11-13: Initial draft.
+- 2026-11-13: Clarification session (4 questions). FR-015 now explicitly allows editing and
+  deleting `done` tasks (AC-049, AC-050). FR-006 explicitly lists `done` tasks in plain
+  `todo list` (AC-051). FR-010 now allows updating and clearing the due date with `--due`
+  (AC-052 – AC-054); AC-029 error text updated to mention `--due`. Same-status changes confirmed
+  as errors (FR-014, no change).
