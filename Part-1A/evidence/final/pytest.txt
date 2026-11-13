@@ -1,0 +1,39 @@
+$ python -m pytest --cov=src --cov-report=term-missing --cov-report=xml:evidence/final/coverage.xml --cov-fail-under=85 --junitxml=evidence/final/junit.xml
+(exit code 0)
+
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.2.0, pluggy-1.7.0
+rootdir: C:\Users\riyas\Documents\AI-SDLC-Assignment-1\Part-1A
+configfile: pyproject.toml
+testpaths: tests
+plugins: cov-7.1.0
+collected 209 items
+
+tests\test_cli_add.py ..................                                 [  8%]
+tests\test_cli_general.py ......                                         [ 11%]
+tests\test_cli_ids_storage.py .................                          [ 19%]
+tests\test_cli_list.py ...........                                       [ 24%]
+tests\test_cli_status.py .............                                   [ 31%]
+tests\test_cli_update_delete.py .....................                    [ 41%]
+tests\test_models.py ................................................... [ 65%]
+.......................                                                  [ 76%]
+tests\test_performance.py ..                                             [ 77%]
+tests\test_storage.py ...............................................    [100%]
+
+- generated xml file: C:\Users\riyas\Documents\AI-SDLC-Assignment-1\Part-1A\evidence\final\junit.xml -
+=============================== tests coverage ================================
+______________ coverage: platform win32, python 3.12.10-final-0 _______________
+
+Name                   Stmts   Miss  Cover   Missing
+----------------------------------------------------
+src\todo\__init__.py       1      0   100%
+src\todo\__main__.py       2      2     0%   3-5
+src\todo\cli.py          105      3    97%   158, 165, 168
+src\todo\models.py        97      0   100%
+src\todo\service.py       71      0   100%
+src\todo\storage.py      109      0   100%
+----------------------------------------------------
+TOTAL                    385      5    99%
+Coverage XML written to file evidence/final/coverage.xml
+Required test coverage of 85% reached. Total coverage: 98.70%
+============================= 209 passed in 2.19s =============================
