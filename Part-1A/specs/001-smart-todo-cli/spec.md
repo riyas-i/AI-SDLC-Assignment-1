@@ -135,7 +135,7 @@ silently overwritten.
 **Why this priority**: Losing task data destroys trust in the tool.
 
 **Independent Test**: Corrupt `tasks.json`, run commands, and confirm the file is byte-for-byte
-unchanged and exit code is 2 (AC-042 – AC-046).
+unchanged and exit code is 2 (AC-042 – AC-046, AC-055).
 
 **Acceptance Scenarios**:
 
@@ -153,8 +153,9 @@ unchanged and exit code is 2 (AC-042 – AC-046).
 - Due date in the past (accepted; the tool does not judge deadlines).
 - Duplicate or differently-cased tags, e.g. `Work,work` (stored once, lower-case).
 - Deleting the highest id, or every task, then adding a new task (id is never reused).
-- `tasks.json` missing (treated as empty), empty (0 bytes), invalid JSON, or valid JSON with the
-  wrong structure (all except "missing" are corrupt).
+- `tasks.json` missing (treated as empty), empty (0 bytes), invalid JSON, valid JSON with the
+  wrong structure, or valid JSON with an unknown extra field (all except "missing" are corrupt).
+- `tasks.json` exists but cannot be read, e.g. access denied (storage error, exit 2).
 - Saving fails partway (previous file contents remain intact).
 - Task id given as `abc`, `0`, or `-1` (rejected as not a positive integer).
 
@@ -162,8 +163,8 @@ unchanged and exit code is 2 (AC-042 – AC-046).
 
 ### Functional Requirements
 
-Acceptance criteria are numbered globally (AC-001 … AC-054). AC-049 – AC-054 were added during
-clarification and sit under the requirement they test, so they appear out of numeric order.
+Acceptance criteria are numbered globally (AC-001 … AC-055). AC-049 – AC-055 were added after
+the initial draft and sit under the requirement they test, so they appear out of numeric order.
 Unless stated otherwise, each
 criterion starts from an empty working directory with no `tasks.json`, and "the task list" means
 the output of `todo list`.
@@ -357,16 +358,23 @@ the output of `todo list`.
   - **AC-043**: **Given** no `tasks.json`, **When** `todo list` runs, **Then** stdout is
     `No tasks found.`, exit code is 0, and `tasks.json` still does not exist.
 
-- **FR-018**: If `tasks.json` exists but is corrupt (empty, not valid JSON, or not in the
-  expected structure), every command that reads it MUST print
+- **FR-018**: If `tasks.json` exists but is corrupt (empty, not valid JSON, not in the expected
+  structure, or containing any field the tool does not recognise), every command that reads it
+  MUST print
   `Error: tasks.json is corrupt and was not modified. Fix or remove it and try again.` to stderr,
-  exit with code 2, and leave the file byte-for-byte unchanged.
+  exit with code 2, and leave the file byte-for-byte unchanged. If `tasks.json` exists but
+  cannot be opened or read (e.g. access denied), the command MUST print
+  `Error: could not read tasks.json.` to stderr, exit with code 2, and leave the file unchanged.
   - **AC-044**: **Given** `tasks.json` contains `{not json`, **When** `todo list` or
     `todo add "X"` runs, **Then** stderr is the corrupt-file message above, exit code is 2, and
     the file content is still exactly `{not json`.
-  - **AC-045**: **Given** `tasks.json` contains valid JSON with the wrong structure (e.g. `[]`, or
-    a task record missing its title), **When** `todo list` runs, **Then** stderr is the
-    corrupt-file message, exit code is 2, and the file is unchanged.
+  - **AC-045**: **Given** `tasks.json` contains valid JSON with the wrong structure (e.g. `[]`, a
+    task record missing its title, or an otherwise valid file with an extra unknown field such as
+    `"notes": "x"` at the top level or in a task), **When** `todo list` runs, **Then** stderr is
+    the corrupt-file message, exit code is 2, and the file is unchanged.
+  - **AC-055**: **Given** `tasks.json` exists but cannot be read (opening it fails with an access
+    error), **When** `todo list` runs, **Then** stderr is `Error: could not read tasks.json.`,
+    stdout is empty, and exit code is 2.
 
 - **FR-019**: If saving fails, the previous contents of `tasks.json` MUST remain intact and the
   command MUST print `Error: could not save tasks.json; no changes were made.` to stderr and exit
@@ -398,8 +406,9 @@ the output of `todo list`.
 
 ### Measurable Outcomes
 
-- **SC-001**: 100% of acceptance criteria AC-001 – AC-054 pass as automated tests.
-- **SC-002**: Each command completes in under 1 second with 1,000 tasks stored.
+- **SC-001**: 100% of acceptance criteria AC-001 – AC-055 pass as automated tests.
+- **SC-002**: Each command completes in under 1 second with 1,000 tasks stored, measured end to
+  end as the user runs it (including program start-up).
 - **SC-003**: In every corrupt-file and failed-save scenario, 0 bytes of existing task data are
   lost or altered.
 - **SC-004**: A first-time user can add a task, list it, and mark it done using only
@@ -423,3 +432,9 @@ the output of `todo list`.
   `todo list` (AC-051). FR-010 now allows updating and clearing the due date with `--due`
   (AC-052 – AC-054); AC-029 error text updated to mention `--due`. Same-status changes confirmed
   as errors (FR-014, no change).
+- 2026-11-13: Changes from /speckit-analyze findings U1, U2 and A1 (user chose option A for each).
+  U1: FR-018 now specifies the unreadable-file error `Error: could not read tasks.json.` (exit 2);
+  new AC-055. U2: an unknown extra field in `tasks.json` now counts as corrupt, so it is never
+  silently dropped on save (FR-018, AC-045 example extended). A1: SC-002 now states that the
+  1-second limit is measured end to end, including program start-up. No existing acceptance
+  criterion was weakened.

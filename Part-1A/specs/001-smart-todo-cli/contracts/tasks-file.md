@@ -35,12 +35,12 @@
 ## Validity rules (any violation → corrupt, exit 2, file untouched)
 
 1. The bytes decode as UTF-8 and parse as JSON. An empty file is corrupt.
-2. The top level is an object with keys `version`, `next_id` and `tasks` (extra keys are
-   ignored and dropped on the next save).
+2. The top level is an object with exactly the keys `version`, `next_id` and `tasks`. Any extra
+   key is corrupt (FR-018, AC-045), so unknown data is never silently dropped on save.
 3. `version` is exactly the integer `1`.
 4. `next_id` is an integer (not a bool) and ≥ 1.
-5. `tasks` is a list. Each element is an object with all six keys `id`, `title`, `status`,
-   `priority`, `tags`, `due`, where:
+5. `tasks` is a list. Each element is an object with exactly the six keys `id`, `title`,
+   `status`, `priority`, `tags`, `due` (no extra keys), where:
    - `id`: integer (not a bool), ≥ 1, unique across tasks, `< next_id`
    - `title`: string, equal to its own `strip()`, length 1–100
    - `status`: one of `todo`, `in_progress`, `done`

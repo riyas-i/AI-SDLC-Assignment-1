@@ -10,7 +10,7 @@ A single-user terminal todo manager: add, list (filter + priority sort), update,
 change the status of tasks, persisted in one `tasks.json` file in the current directory. It is
 built as a pure-standard-library Python 3.12 package `src/todo/` with four layers (models →
 storage → service → cli) and an `argparse` front end runnable as `python -m todo` or via a
-`todo` console script. Every acceptance criterion (AC-001 – AC-054) maps to a named pytest test.
+`todo` console script. Every acceptance criterion (AC-001 – AC-055) maps to a named pytest test.
 A harness in `.harness/run_harness.py` runs Ruff, Bandit and pytest with coverage and writes
 results to `evidence/`.
 
@@ -99,14 +99,14 @@ tests/
 ├── conftest.py           # tmp working dir fixture, run_cli helper (in-process main + capsys)
 ├── test_models.py        # validators, transitions (unit)
 ├── test_storage.py       # load/save, corruption, atomic write failure (unit)
-├── test_service.py       # business rules (unit)
+├── test_service.py       # business rules (unit; optional, add only if coverage needs it)
 ├── test_cli_add.py       # AC-001 – AC-016
 ├── test_cli_list.py      # AC-017 – AC-024, AC-051
 ├── test_cli_update_delete.py  # AC-025 – AC-032, AC-052 – AC-054
 ├── test_cli_status.py    # AC-033 – AC-039, AC-049, AC-050
-├── test_cli_ids_storage.py    # AC-040 – AC-046
+├── test_cli_ids_storage.py    # AC-040 – AC-046, AC-055
 ├── test_cli_general.py   # AC-047, AC-048, `python -m todo` smoke test
-└── test_performance.py   # SC-002: 1,000 tasks < 1 s
+└── test_performance.py   # SC-002: 1,000 tasks < 1 s (in-process and end-to-end subprocess)
 
 .harness/
 └── run_harness.py        # runs ruff, bandit, pytest+coverage; writes evidence/

@@ -23,10 +23,12 @@ records the design decisions behind them.
 - **Rationale**: An empty file, invalid JSON, `[]`, or a task missing its title must all be
   "corrupt" (FR-018, AC-044, AC-045). Validating every field (types, enum values, title length,
   tag format, real dates, unique ids, `next_id > max id`) means later code can trust the data.
+  Unknown extra keys (top level or in a task) are also corrupt, so they are never silently
+  dropped on the next save (FR-018, AC-045).
 - **Read failure** (`OSError` other than file-not-found, e.g. permission denied): raise
-  `StorageError` with `Error: could not read tasks.json.` and exit 2. This message is not in the
-  spec. It falls under the constitution's "storage error = 2" rule.
-- **Alternatives**: Lenient loading with defaults (could silently drop data, then overwrite it).
+  `StorageError` with `Error: could not read tasks.json.` and exit 2 (FR-018, AC-055).
+- **Alternatives**: Lenient loading with defaults, or ignoring unknown keys (both could silently
+  drop data, then overwrite it). Preserving unknown keys on save (more code for no current need).
 
 ## R3. Never reusing ids
 
@@ -93,7 +95,8 @@ records the design decisions behind them.
   - One subprocess smoke test runs `[sys.executable, "-m", "todo", "--help"]` with
     `env PYTHONPATH=src` (list args, no shell).
   - `test_performance.py` builds 1,000 tasks directly in the file and times `list` and `add`
-    (< 1 s each).
+    twice: in-process (< 1 s each), and end to end as a subprocess
+    `[sys.executable, "-m", "todo", ...]` including interpreter start-up (< 1 s each, SC-002).
 - **Rationale**: In-process calls are fast and count toward coverage. AC-prefixed names make
   the constitution's traceability rule (Principle III) checkable with `grep`.
 

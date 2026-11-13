@@ -57,7 +57,7 @@ todo status <id> <new_status>
 | Any transition from `done` | `Error: task <id> is done; its status cannot be changed.` | 1 |
 | Corrupt `tasks.json` | `Error: tasks.json is corrupt and was not modified. Fix or remove it and try again.` | 2 |
 | Save failed | `Error: could not save tasks.json; no changes were made.` | 2 |
-| Read failed (not in spec; R2) | `Error: could not read tasks.json.` | 2 |
+| Read failed, e.g. access denied (FR-018, AC-055) | `Error: could not read tasks.json.` | 2 |
 
 ## Check order (determines which error wins)
 

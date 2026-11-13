@@ -64,9 +64,9 @@ Evidence files written to `evidence/<label>/` (default label `latest`): `ruff.tx
 | AC-017 – AC-024, AC-051 | FR-006 – FR-009 (list, sort, filters) | `tests/test_cli_list.py` |
 | AC-025 – AC-032, AC-052 – AC-054 | FR-010 – FR-012 (update, delete, ids) | `tests/test_cli_update_delete.py` |
 | AC-033 – AC-039, AC-049, AC-050 | FR-013 – FR-015 (status, done tasks) | `tests/test_cli_status.py` |
-| AC-040 – AC-046 | FR-016 – FR-019 (ids, persistence, corruption, save failure) | `tests/test_cli_ids_storage.py` |
+| AC-040 – AC-046, AC-055 | FR-016 – FR-019 (ids, persistence, corruption, unreadable file, save failure) | `tests/test_cli_ids_storage.py` |
 | AC-047, AC-048 | FR-020 (usage, help) | `tests/test_cli_general.py` |
-| SC-002 | performance (1,000 tasks < 1 s) | `tests/test_performance.py` |
+| SC-002 | performance (1,000 tasks < 1 s, in-process and end to end) | `tests/test_performance.py` |
 
 Test functions are named `test_acNNN_<short_description>`, so this works:
 `Select-String -Path tests\*.py -Pattern "def test_ac044"`.
@@ -74,4 +74,4 @@ Test functions are named `test_acNNN_<short_description>`, so this works:
 ## 5. Expected outcome
 
 - `python .harness\run_harness.py --label final` prints `OVERALL: PASS` and exits 0.
-- `evidence\final\summary.json` shows `"overall": "pass"`, with coverage ≥ 85 % and 54/54 ACs traced.
+- `evidence\final\summary.json` shows `"overall": "pass"`, with coverage ≥ 85 % and 55/55 ACs traced.

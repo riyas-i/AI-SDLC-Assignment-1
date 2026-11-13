@@ -23,7 +23,7 @@ be traced:
 | US2 | Track progress through statuses (P2) | AC-033 – AC-039, AC-049 – AC-051 |
 | US3 | Filter the list (P3) | AC-019 – AC-024 |
 | US4 | Edit and remove tasks (P3) | AC-025 – AC-032, AC-040, AC-041, AC-052 – AC-054 |
-| US5 | Data is safe (P2) | AC-042 – AC-046 |
+| US5 | Data is safe (P2) | AC-042 – AC-046, AC-055 |
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -149,12 +149,16 @@ copied **verbatim** from spec.md / contracts/cli.md.
   - `test_ac044_corrupt_json_untouched` (parametrized over `list` and `add "X"`; compare raw
     bytes before and after)
   - `test_ac045_wrong_structure_untouched` (parametrized: `[]`, missing title, empty file,
-    duplicate ids, bad status, `next_id` ≤ max id)
+    duplicate ids, bad status, `next_id` ≤ max id, unknown top-level key `"notes": "x"`, unknown
+    task key `"notes": "x"`)
+  - `test_ac055_unreadable_file_exit2`: create a valid `tasks.json`, then
+    `monkeypatch.setattr(pathlib.Path, "read_bytes", raiser)` raising `PermissionError`; assert
+    stderr `Error: could not read tasks.json.\n`, empty stdout, exit 2, file bytes unchanged
   - `test_ac046_save_failure_keeps_file`: `monkeypatch.setattr(os, "replace", raiser)`; assert
     `Error: could not save tasks.json; no changes were made.`, exit 2, original bytes intact,
     and no `.tasks-*.tmp` left in `tmp_path`
 
-  Depends on T014 (same file). Covers: FR-017 – FR-019, AC-042 – AC-046.
+  Depends on T014 (same file). Covers: FR-017 – FR-019, AC-042 – AC-046, AC-055.
 - [ ] T016 [P] Write unit tests `tests/test_models.py` for the validators in data-model.md:
   `validate_title`, `parse_priority`, `parse_tags`, `parse_due`, `parse_status`,
   `parse_task_id`, `check_transition`. Cover the full transition table, including
@@ -163,17 +167,25 @@ copied **verbatim** from spec.md / contracts/cli.md.
   FR-005, FR-012 – FR-015.
 - [ ] T017 [P] Write unit tests `tests/test_storage.py`: load of a missing file returns an empty
   store with `next_id = 1`; round-trip save/load keeps UTF-8 titles such as `Café ☕`; every
-  validity rule 1–5 in contracts/tasks-file.md raises `CorruptStoreError`; a failed
+  validity rule 1–5 in contracts/tasks-file.md raises `CorruptStoreError`, including an extra
+  unknown key at the top level and inside a task; a failed
   `os.replace` raises `SaveError` and removes the temp file; a non-ENOENT `OSError` on read
   raises `StorageError`. Covers: FR-017 – FR-019.
-- [ ] T018 [P] Write `tests/test_performance.py`:
-  `test_sc002_list_and_add_with_1000_tasks_under_1s`. Seed 1,000 tasks via `write_store`, then
-  time `list` and `add` with `time.perf_counter()`, asserting each is < 1.0 s. Covers: SC-002.
+- [ ] T018 [P] Write `tests/test_performance.py`. Seed 1,000 tasks via `write_store`, then time
+  each run with `time.perf_counter()`, asserting each is < 1.0 s:
+  - `test_sc002_list_and_add_with_1000_tasks_under_1s`: `list` and `add` called in-process via
+    `run(...)`
+  - `test_sc002_end_to_end_subprocess_under_1s`: `list` and `add` run as
+    `subprocess.run([sys.executable, "-m", "todo", ...], cwd=tmp_path, env={..., "PYTHONPATH":
+    <abs path to src>})` (list args, no shell), so interpreter start-up is included; also assert
+    exit code 0
+
+  Covers: SC-002.
 - [ ] T019 Run `python -m pytest`. Confirm every test **fails or errors** (no implementation
   yet) and none pass by accident. Record the summary line in the Phase 2 commit message.
   Covers: constitution III (red phase).
 
-**Checkpoint**: Every AC-001 – AC-054 has at least one `test_acNNN_` test; the suite is red.
+**Checkpoint**: Every AC-001 – AC-055 has at least one `test_acNNN_` test; the suite is red.
 Commit.
 
 ---
@@ -196,14 +208,14 @@ Commit.
 - [ ] T021 Add a traceability step to `.harness/run_harness.py`: collect every `AC-\d{3}` in
   `specs/001-smart-todo-cli/spec.md`, and every `def test_ac(\d{3})` in `tests/*.py`. Write
   `traceability.txt` listing each AC and its test names. The step fails if any AC has no test.
-  Depends on T020. Covers: constitution III; AC-001 – AC-054 traceability.
+  Depends on T020. Covers: constitution III; AC-001 – AC-055 traceability.
 - [ ] T022 Add summary output to `.harness/run_harness.py`. Write `summary.json` (timestamp,
   Python version, tool versions, per-step `{exit_code, passed}`, coverage percent parsed from
   coverage.xml, ACs traced/total, `overall`: `pass`/`fail`) and `summary.md` (table of the
   same). Print `OVERALL: PASS|FAIL` and exit 0 only if every step passed. Depends on T021.
   Covers: constitution III, VII (auditable evidence).
 - [ ] T023 Run `python .harness\run_harness.py --label red-baseline`. Expected result: ruff
-  PASS, bandit PASS, traceability PASS (54/54), pytest FAIL (red). If ruff or traceability
+  PASS, bandit PASS, traceability PASS (55/55), pytest FAIL (red). If ruff or traceability
   fail, fix the tests or harness (without weakening any check). Commit `evidence/red-baseline/`.
   Covers: constitution III (red phase evidence).
 
@@ -243,12 +255,13 @@ such fix in the commit message.
   - `TaskStore(version, next_id, tasks)` dataclass
   - `StorageError` → `CorruptStoreError`, `SaveError`
   - `load(path: Path) -> TaskStore`: a missing file gives an empty store and is not created;
-    otherwise read bytes → UTF-8 → `json.loads` → apply validity rules 1–5 of
-    contracts/tasks-file.md
+    otherwise read with `path.read_bytes()` → UTF-8 → `json.loads` → apply validity rules 1–5 of
+    contracts/tasks-file.md, where **exactly** the listed keys are allowed (any extra key at top
+    level or in a task is corrupt)
   - message texts: corrupt `tasks.json is corrupt and was not modified. Fix or remove it and try
-    again.`; other `OSError` `could not read tasks.json.`
+    again.`; any other `OSError` while reading `could not read tasks.json.`
 
-  Depends on T024, T025. Covers: FR-017, FR-018, AC-043 – AC-045.
+  Depends on T024, T025. Covers: FR-017, FR-018, AC-043 – AC-045, AC-055.
 - [ ] T027 Implement `save(path, store)` in `src/todo/storage.py` per research.md R1:
   `tempfile.mkstemp(dir=path.parent, prefix=".tasks-", suffix=".tmp")`, write
   `json.dumps(..., ensure_ascii=False, indent=2) + "\n"` as UTF-8, `flush` + `os.fsync`, then
@@ -324,10 +337,10 @@ such fix in the commit message.
 ### User Story 5 – Data is safe (P2)
 
 - [ ] T036 [US5] Verify the storage behaviour end-to-end through the CLI. Make
-  `tests/test_cli_ids_storage.py` AC-042 – AC-046 and `tests/test_storage.py` pass, fixing
+  `tests/test_cli_ids_storage.py` AC-042 – AC-046, AC-055 and `tests/test_storage.py` pass, fixing
   `src/todo/storage.py` or `src/todo/service.py` as needed, never the tests. Confirm that a
   corrupt file wins over invalid arguments (load happens first). Depends on T027, T035.
-  Covers: FR-017 – FR-019, AC-042 – AC-046, SC-003.
+  Covers: FR-017 – FR-019, AC-042 – AC-046, AC-055, SC-003.
 
 ### Cross-cutting
 
@@ -344,13 +357,13 @@ such fix in the commit message.
 
 - [ ] T038 Run `python .harness\run_harness.py --label final`. Fix any failures in
   `src/` until it prints `OVERALL: PASS` (ruff 0 errors, bandit 0 Medium/High, all tests pass,
-  coverage ≥ 85 %, 54/54 ACs traced). Do not change the gates (constitution VII). Covers:
+  coverage ≥ 85 %, 55/55 ACs traced). Do not change the gates (constitution VII). Covers:
   constitution I – III, SC-001.
 - [ ] T039 [P] Walk through the quickstart.md §2 smoke scenario manually in a temp folder and
   confirm each printed line and `$LASTEXITCODE` matches. (Quickstart §3 already points at
   `evidence\<label>\`, fixed for finding I2.) Covers: SC-004, FR-020.
 - [ ] T040 Commit and push `evidence/final/` together with the code. The commit message must
-  quote the coverage percent and `54/54 ACs traced`. Covers: constitution III, VII (evidence
+  quote the coverage percent and `55/55 ACs traced`. Covers: constitution III, VII (evidence
   preserved).
 
 ---
