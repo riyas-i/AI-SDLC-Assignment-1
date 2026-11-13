@@ -1,1 +1,5 @@
-"""Entry point for ``python -m todo``. Implemented in Phase 4."""
+"""Entry point for ``python -m todo``."""
+
+from todo.cli import main
+
+raise SystemExit(main())

@@ -231,7 +231,7 @@ such fix in the commit message.
 
 ### Foundation (blocks all stories)
 
-- [ ] T024 Implement the core types in `src/todo/models.py` per data-model.md:
+- [X] T024 Implement the core types in `src/todo/models.py` per data-model.md:
   - `Status(StrEnum)`: `todo`, `in_progress`, `done`
   - `Priority(StrEnum)`: `low`, `medium`, `high`, with `PRIORITY_RANK = {high: 0, medium: 1,
     low: 2}`
@@ -240,7 +240,7 @@ such fix in the commit message.
   - exceptions `TodoError` → `ValidationError` → `NotFoundError`
 
   Covers: FR-001, FR-003, FR-007, FR-013.
-- [ ] T025 Implement the validators in `src/todo/models.py` with the exact contract messages:
+- [X] T025 Implement the validators in `src/todo/models.py` with the exact contract messages:
   - `validate_title`: "1–100 characters after `strip()`", returns the stripped title
   - `parse_priority`: case-insensitive, `low|medium|high`
   - `parse_tags`: split on `,`, `strip().lower()`, drop empties, de-dup keeping order, each
@@ -251,7 +251,7 @@ such fix in the commit message.
   - `check_transition(task_id, old, new)`: the table in data-model.md
 
   Depends on T024. Covers: FR-002 – FR-005, FR-009, FR-012 – FR-015.
-- [ ] T026 Implement loading in `src/todo/storage.py`:
+- [X] T026 Implement loading in `src/todo/storage.py`:
   - `TaskStore(version, next_id, tasks)` dataclass
   - `StorageError` → `CorruptStoreError`, `SaveError`
   - `load(path: Path) -> TaskStore`: a missing file gives an empty store and is not created;
@@ -262,13 +262,13 @@ such fix in the commit message.
     again.`; any other `OSError` while reading `could not read tasks.json.`
 
   Depends on T024, T025. Covers: FR-017, FR-018, AC-043 – AC-045, AC-055.
-- [ ] T027 Implement `save(path, store)` in `src/todo/storage.py` per research.md R1:
+- [X] T027 Implement `save(path, store)` in `src/todo/storage.py` per research.md R1:
   `tempfile.mkstemp(dir=path.parent, prefix=".tasks-", suffix=".tmp")`, write
   `json.dumps(..., ensure_ascii=False, indent=2) + "\n"` as UTF-8, `flush` + `os.fsync`, then
   `os.replace`. On any exception, unlink the temp file and raise
   `SaveError("could not save tasks.json; no changes were made.")`. Depends on T026.
   Covers: FR-016, FR-019, AC-046, constitution V.
-- [ ] T028 Implement the CLI skeleton in `src/todo/cli.py` and `src/todo/__main__.py`:
+- [X] T028 Implement the CLI skeleton in `src/todo/cli.py` and `src/todo/__main__.py`:
   - `_Parser(argparse.ArgumentParser)` with `error()` → usage to stderr, exit 1
   - subparsers `add`, `list`, `update`, `delete`, `status` per contracts/cli.md grammar, taking
     ids, priority and status as plain `str`
@@ -281,14 +281,14 @@ such fix in the commit message.
 
 ### User Story 1 – Capture and see tasks (P1, MVP)
 
-- [ ] T029 [US1] Implement `TodoService(path)` in `src/todo/service.py`:
+- [X] T029 [US1] Implement `TodoService(path)` in `src/todo/service.py`:
   - `add(title, priority=None, tags=None, due=None) -> Task`: load first, validate, assign
     `next_id`, increment it, save
   - `list_tasks(tag=None, status=None) -> list[Task]`: sorted by `(PRIORITY_RANK, id)`; never
     saves
 
   Depends on T025, T027. Covers: FR-001 – FR-007, FR-016, AC-001 – AC-018.
-- [ ] T030 [US1] Implement the `add` and `list` handlers in `src/todo/cli.py`:
+- [X] T030 [US1] Implement the `add` and `list` handlers in `src/todo/cli.py`:
   - `add` prints `Added task <id>: <title>`
   - `list` formats lines as `<id> | <status> | <priority> | <title> | tags: <t1,t2 or -> |
     due: <date or ->`, or prints `No tasks found.`
@@ -301,25 +301,25 @@ such fix in the commit message.
 
 ### User Story 2 – Track progress through statuses (P2)
 
-- [ ] T031 [US2] Add `set_status(task_id, new_status) -> tuple[Status, Status]` to
+- [X] T031 [US2] Add `set_status(task_id, new_status) -> tuple[Status, Status]` to
   `src/todo/service.py`. Order: load → `parse_task_id` → `parse_status` → look up (else
   `NotFoundError("task <id> not found.")`) → `check_transition` → save. Depends on T029.
   Covers: FR-012 – FR-015, AC-033 – AC-039.
-- [ ] T032 [US2] Add the `status` handler to `src/todo/cli.py`, printing
+- [X] T032 [US2] Add the `status` handler to `src/todo/cli.py`, printing
   `Task <id> status: <old> -> <new>`. Make `tests/test_cli_status.py` (except AC-049/AC-050,
   which need US4) and `test_ac051` pass. Depends on T030, T031. Covers: FR-006, FR-013 –
   FR-015, AC-033 – AC-039, AC-051.
 
 ### User Story 3 – Filter the list (P3)
 
-- [ ] T033 [US3] Implement filtering in `TodoService.list_tasks` in `src/todo/service.py`
+- [X] T033 [US3] Implement filtering in `TodoService.list_tasks` in `src/todo/service.py`
   (`tag`: `strip().lower()` membership; `status`: `parse_status`; AND-combined, applied before
   sorting). Wire `--tag`/`--status` in the `list` handler in `src/todo/cli.py`. Make AC-019 –
   AC-024 pass. Depends on T030. Covers: FR-008, FR-009, AC-019 – AC-024.
 
 ### User Story 4 – Edit and remove tasks (P3)
 
-- [ ] T034 [US4] Add `update(task_id, title=None, priority=None, tags=None, due=None)` and
+- [X] T034 [US4] Add `update(task_id, title=None, priority=None, tags=None, due=None)` and
   `delete(task_id)` to `src/todo/service.py`:
   - `None` means "not given"; `""` for tags/due clears the field
   - if no field is given: `ValidationError("nothing to update; provide --title, --priority,
@@ -329,14 +329,14 @@ such fix in the commit message.
 
   Order: load → id format → field validation → look up → save. Depends on T029.
   Covers: FR-010 – FR-012, FR-015, FR-016.
-- [ ] T035 [US4] Add the `update` and `delete` handlers to `src/todo/cli.py`, printing
+- [X] T035 [US4] Add the `update` and `delete` handlers to `src/todo/cli.py`, printing
   `Updated task <id>.` / `Deleted task <id>.` Make `tests/test_cli_update_delete.py`, AC-040,
   AC-041, AC-049 and AC-050 pass. Depends on T032, T034. Covers: FR-010 – FR-012, FR-015,
   FR-016, AC-025 – AC-032, AC-040, AC-041, AC-049, AC-050, AC-052 – AC-054.
 
 ### User Story 5 – Data is safe (P2)
 
-- [ ] T036 [US5] Verify the storage behaviour end-to-end through the CLI. Make
+- [X] T036 [US5] Verify the storage behaviour end-to-end through the CLI. Make
   `tests/test_cli_ids_storage.py` AC-042 – AC-046, AC-055 and `tests/test_storage.py` pass, fixing
   `src/todo/storage.py` or `src/todo/service.py` as needed, never the tests. Confirm that a
   corrupt file wins over invalid arguments (load happens first). Depends on T027, T035.
@@ -344,7 +344,7 @@ such fix in the commit message.
 
 ### Cross-cutting
 
-- [ ] T037 Make `tests/test_models.py`, `tests/test_service.py` (if present) and
+- [X] T037 Make `tests/test_models.py`, `tests/test_service.py` (if present) and
   `tests/test_performance.py` pass; profile only if SC-002 fails. Run `python -m pytest` and
   confirm the full suite is green. Depends on T036. Covers: SC-002; FR-002 – FR-005,
   FR-012 – FR-015.
