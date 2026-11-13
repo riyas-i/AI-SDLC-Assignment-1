@@ -1,0 +1,4 @@
+$ python -m ruff check .
+(exit code 0)
+
+All checks passed!
