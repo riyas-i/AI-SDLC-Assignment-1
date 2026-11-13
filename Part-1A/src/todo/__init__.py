@@ -1,0 +1,1 @@
+"""Smart Todo CLI package."""

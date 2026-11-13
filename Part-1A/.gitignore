@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.venv/
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+.coverage
+
+# Stray data file in the project root (never commit user task data)
+/tasks.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+
+# NOTE: evidence/ is intentionally NOT ignored (assignment evidence).

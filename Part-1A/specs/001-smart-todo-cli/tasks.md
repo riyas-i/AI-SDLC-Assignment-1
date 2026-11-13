@@ -54,7 +54,7 @@ commands are PowerShell, run from `Part-1A/` with `.venv` activated
 
 **Purpose**: Project configuration, empty package skeleton, dev tools installed.
 
-- [ ] T001 Create `pyproject.toml` at `Part-1A/pyproject.toml` per research.md R9:
+- [X] T001 Create `pyproject.toml` at `Part-1A/pyproject.toml` per research.md R9:
   `[build-system]` setuptools; `[project]` `name = "smart-todo"`, `version = "1.0.0"`,
   `requires-python = ">=3.12"`, `dependencies = []`;
   `[project.optional-dependencies] dev = ["ruff", "bandit", "pytest", "pytest-cov"]`;
@@ -63,15 +63,15 @@ commands are PowerShell, run from `Part-1A/` with `.venv` activated
   `[tool.ruff] target-version = "py312"`, `line-length = 100`;
   `[tool.ruff.lint] select = ["E", "F", "W", "I", "B", "UP", "SIM"]`.
   Covers: constitution I, III, IV; FR-020 (`todo` command name).
-- [ ] T002 [P] Create the package skeleton with empty, importable modules (docstring only, no
+- [X] T002 [P] Create the package skeleton with empty, importable modules (docstring only, no
   logic): `src/todo/__init__.py`, `src/todo/__main__.py`, `src/todo/models.py`,
   `src/todo/storage.py`, `src/todo/service.py`, `src/todo/cli.py`; and a `tests/` folder (no
   `tests/__init__.py`; pytest finds `src` via `pythonpath`). Covers: plan.md structure.
-- [ ] T003 [P] Add `Part-1A/.gitignore` ignoring `__pycache__/`, `*.egg-info/`,
+- [X] T003 [P] Add `Part-1A/.gitignore` ignoring `__pycache__/`, `*.egg-info/`,
   `.pytest_cache/`, `.ruff_cache/`, `.coverage`, `build/`, and `/tasks.json` (a stray data file
   in the project root). `evidence/` must **not** be ignored. Covers: constitution V (data file
   not committed by accident).
-- [ ] T004 Install the package and dev tools into `.venv`:
+- [X] T004 Install the package and dev tools into `.venv`:
   `uv pip install --system-certs -e ".[dev]"`. Then verify with `python -m ruff --version`,
   `python -m bandit --version`, `python -m pytest --version` and
   `python -c "import todo"`. Depends on T001, T002. Covers: constitution IV, IX.
@@ -100,9 +100,9 @@ copied **verbatim** from spec.md / contracts/cli.md.
   contracts/tasks-file.md) to set up Given-states directly, e.g. a task already `done`.
 - Helper `list_lines()` runs `todo list` and returns stdout lines.
 
-- [ ] T006 Create `tests/conftest.py` with the `cli_env` fixture and the `run`, `write_store`
+- [X] T006 Create `tests/conftest.py` with the `cli_env` fixture and the `run`, `write_store`
   and `list_lines` helpers described above. Covers: all ACs (test infrastructure).
-- [ ] T007 [P] [US1] Write `tests/test_cli_add.py`: `test_ac001_add_first_task` …
+- [X] T007 [P] [US1] Write `tests/test_cli_add.py`: `test_ac001_add_first_task` …
   `test_ac016_reject_wrong_date_format`. One test per AC-001 – AC-016. AC-003/AC-004 use
   `"a" * 100` / `"a" * 101`. AC-004, AC-009, AC-013 and AC-015 also assert that no
   `tasks.json` was created. Exact messages: `Error: title must be 1-100 characters.`,
@@ -110,40 +110,40 @@ copied **verbatim** from spec.md / contracts/cli.md.
   `Error: each tag must be 1-30 characters using only letters, digits, '-' or '_'.`,
   `Error: due date must be a valid date in YYYY-MM-DD format.` Covers: FR-001 – FR-005,
   AC-001 – AC-016.
-- [ ] T008 [P] [US1] Write `tests/test_cli_general.py`: `test_ac047_unknown_command_usage_exit1`
+- [X] T008 [P] [US1] Write `tests/test_cli_general.py`: `test_ac047_unknown_command_usage_exit1`
   (also `todo add` with no title; assert `"usage:"` in stderr, empty stdout, code 1),
   `test_ac048_help_lists_commands` (stdout contains `add`, `list`, `update`, `delete`,
   `status`; code 0), and `test_ac048_python_m_todo_help_subprocess`, which runs
   `subprocess.run([sys.executable, "-m", "todo", "--help"], env={..., "PYTHONPATH": "src"})`
   with list args and no shell. Covers: FR-020, AC-047, AC-048.
-- [ ] T009 [US1] Write `tests/test_cli_list.py` (part 1): `test_ac017_empty_list` and
+- [X] T009 [US1] Write `tests/test_cli_list.py` (part 1): `test_ac017_empty_list` and
   `test_ac018_sort_by_priority_then_creation` (tasks A low, B high, C medium, D high → ids
   2, 4, 3, 1). Covers: FR-006, FR-007, AC-017, AC-018.
-- [ ] T010 [US3] Extend `tests/test_cli_list.py` (part 2): `test_ac019_filter_by_tag` …
+- [X] T010 [US3] Extend `tests/test_cli_list.py` (part 2): `test_ac019_filter_by_tag` …
   `test_ac024_filter_tag_and_status`. AC-022 uses titles `Write report`/`File taxes`, with
   the `done` state set via `write_store`. AC-023 checks
   `Error: status must be one of: todo, in_progress, done.` Depends on T009 (same file).
   Covers: FR-008, FR-009, AC-019 – AC-024.
-- [ ] T011 [US2] Extend `tests/test_cli_list.py` (part 3): `test_ac051_plain_list_shows_all_statuses`,
+- [X] T011 [US2] Extend `tests/test_cli_list.py` (part 3): `test_ac051_plain_list_shows_all_statuses`,
   asserting the exact three lines from spec AC-051. Depends on T010 (same file). Covers: FR-006,
   AC-051.
-- [ ] T012 [P] [US2] Write `tests/test_cli_status.py`: `test_ac033_todo_to_in_progress` …
+- [X] T012 [P] [US2] Write `tests/test_cli_status.py`: `test_ac033_todo_to_in_progress` …
   `test_ac039_invalid_status_value`, plus `test_ac049_edit_done_task` and
   `test_ac050_delete_done_task`. AC-038 is parametrized over `todo`, `in_progress` and `done`
   and checks `Error: task 1 is done; its status cannot be changed.` Every rejected case also
   asserts the status is unchanged in `todo list`. Covers: FR-013 – FR-015, AC-033 – AC-039,
   AC-049, AC-050.
-- [ ] T013 [P] [US4] Write `tests/test_cli_update_delete.py`: `test_ac025_update_title_only` …
+- [X] T013 [P] [US4] Write `tests/test_cli_update_delete.py`: `test_ac025_update_title_only` …
   `test_ac032_invalid_id_format` (AC-032 parametrized over `abc`, `0`, `-1` for `delete`,
   `update`, `status`; AC-031 likewise for not-found id 99), plus
   `test_ac052_update_due_date`, `test_ac053_clear_due_date` and
   `test_ac054_reject_invalid_due_on_update`. AC-029 message:
   `Error: nothing to update; provide --title, --priority, --tags or --due.` Covers: FR-010 –
   FR-012, AC-025 – AC-032, AC-052 – AC-054.
-- [ ] T014 [P] [US4] Write `tests/test_cli_ids_storage.py` (part 1):
+- [X] T014 [P] [US4] Write `tests/test_cli_ids_storage.py` (part 1):
   `test_ac040_id_not_reused_after_delete_last`, `test_ac041_id_not_reused_after_delete_all`.
   Covers: FR-016, AC-040, AC-041.
-- [ ] T015 [US5] Extend `tests/test_cli_ids_storage.py` (part 2):
+- [X] T015 [US5] Extend `tests/test_cli_ids_storage.py` (part 2):
   - `test_ac042_persists_between_runs`
   - `test_ac043_list_does_not_create_file`
   - `test_ac044_corrupt_json_untouched` (parametrized over `list` and `add "X"`; compare raw
@@ -159,19 +159,19 @@ copied **verbatim** from spec.md / contracts/cli.md.
     and no `.tasks-*.tmp` left in `tmp_path`
 
   Depends on T014 (same file). Covers: FR-017 – FR-019, AC-042 – AC-046, AC-055.
-- [ ] T016 [P] Write unit tests `tests/test_models.py` for the validators in data-model.md:
+- [X] T016 [P] Write unit tests `tests/test_models.py` for the validators in data-model.md:
   `validate_title`, `parse_priority`, `parse_tags`, `parse_due`, `parse_status`,
   `parse_task_id`, `check_transition`. Cover the full transition table, including
   `in_progress → in_progress` rejected. Use `test_acNNN_` prefixes where a case maps to an AC
   (e.g. `test_ac012_tags_dedup_lowercase`), otherwise `test_unit_...`. Covers: FR-002 –
   FR-005, FR-012 – FR-015.
-- [ ] T017 [P] Write unit tests `tests/test_storage.py`: load of a missing file returns an empty
+- [X] T017 [P] Write unit tests `tests/test_storage.py`: load of a missing file returns an empty
   store with `next_id = 1`; round-trip save/load keeps UTF-8 titles such as `Café ☕`; every
   validity rule 1–5 in contracts/tasks-file.md raises `CorruptStoreError`, including an extra
   unknown key at the top level and inside a task; a failed
   `os.replace` raises `SaveError` and removes the temp file; a non-ENOENT `OSError` on read
   raises `StorageError`. Covers: FR-017 – FR-019.
-- [ ] T018 [P] Write `tests/test_performance.py`. Seed 1,000 tasks via `write_store`, then time
+- [X] T018 [P] Write `tests/test_performance.py`. Seed 1,000 tasks via `write_store`, then time
   each run with `time.perf_counter()`, asserting each is < 1.0 s:
   - `test_sc002_list_and_add_with_1000_tasks_under_1s`: `list` and `add` called in-process via
     `run(...)`
@@ -181,7 +181,7 @@ copied **verbatim** from spec.md / contracts/cli.md.
     exit code 0
 
   Covers: SC-002.
-- [ ] T019 Run `python -m pytest`. Confirm every test **fails or errors** (no implementation
+- [X] T019 Run `python -m pytest`. Confirm every test **fails or errors** (no implementation
   yet) and none pass by accident. Record the summary line in the Phase 2 commit message.
   Covers: constitution III (red phase).
 
@@ -194,7 +194,7 @@ Commit.
 
 **Purpose**: One command that enforces every constitution gate and writes evidence.
 
-- [ ] T020 Create `.harness/run_harness.py` (stdlib only; `subprocess.run` with list args,
+- [X] T020 Create `.harness/run_harness.py` (stdlib only; `subprocess.run` with list args,
   `shell=False`, `sys.executable -m <tool>`, `cwd` = `Part-1A`). CLI option `--label NAME`
   (default `latest`) writes into `evidence/<label>/`. Steps, each saving combined output to
   `<step>.txt`:
@@ -205,16 +205,16 @@ Commit.
      --junitxml=evidence/<label>/junit.xml`
 
   Covers: constitution I, II, III, VI.
-- [ ] T021 Add a traceability step to `.harness/run_harness.py`: collect every `AC-\d{3}` in
+- [X] T021 Add a traceability step to `.harness/run_harness.py`: collect every `AC-\d{3}` in
   `specs/001-smart-todo-cli/spec.md`, and every `def test_ac(\d{3})` in `tests/*.py`. Write
   `traceability.txt` listing each AC and its test names. The step fails if any AC has no test.
   Depends on T020. Covers: constitution III; AC-001 – AC-055 traceability.
-- [ ] T022 Add summary output to `.harness/run_harness.py`. Write `summary.json` (timestamp,
+- [X] T022 Add summary output to `.harness/run_harness.py`. Write `summary.json` (timestamp,
   Python version, tool versions, per-step `{exit_code, passed}`, coverage percent parsed from
   coverage.xml, ACs traced/total, `overall`: `pass`/`fail`) and `summary.md` (table of the
   same). Print `OVERALL: PASS|FAIL` and exit 0 only if every step passed. Depends on T021.
   Covers: constitution III, VII (auditable evidence).
-- [ ] T023 Run `python .harness\run_harness.py --label red-baseline`. Expected result: ruff
+- [X] T023 Run `python .harness\run_harness.py --label red-baseline`. Expected result: ruff
   PASS, bandit PASS, traceability PASS (55/55), pytest FAIL (red). If ruff or traceability
   fail, fix the tests or harness (without weakening any check). Commit `evidence/red-baseline/`.
   Covers: constitution III (red phase evidence).
