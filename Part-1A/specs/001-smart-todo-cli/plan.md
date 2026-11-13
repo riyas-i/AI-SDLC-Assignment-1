@@ -51,7 +51,7 @@ No NEEDS CLARIFICATION items remain; design decisions are recorded in [research.
 | I | Ruff zero errors | Ruff config in `pyproject.toml`; harness runs `ruff check .` over `src/`, `tests/`, `.harness/` | ✅ | ✅ |
 | II | Bandit zero Medium/High | Harness runs `bandit -r src -ll`; design uses no risky APIs (see VI) | ✅ | ✅ |
 | III | Every AC tested, ≥ 85 % coverage | One or more tests per AC named `test_acNNN_*` (traceability matrix in quickstart); `--cov-fail-under=85` | ✅ | ✅ |
-| IV | Stdlib-only runtime | `[project] dependencies = []`; dev tools only in `[project.optional-dependencies] dev` | ✅ | ✅ |
+| IV | Stdlib-only runtime (v1.1.0) | `[project] dependencies = []`; dev tools only in `[project.optional-dependencies] dev`; setuptools only in `[build-system]`; installs via `uv pip install --system-certs` | ✅ | ✅ |
 | V | One JSON file, atomic writes | `storage.py` writes `tasks.json` via `tempfile.mkstemp` in the same dir, `fsync`, `os.replace`; temp removed on failure | ✅ | ✅ |
 | VI | No secrets/network/eval/exec/`shell=True` | None used in `src/`. The harness uses `subprocess.run([...])` with list args and `shell=False` | ✅ | ✅ |
 | VII | Spec integrity / harness protection | Tests and harness config are never weakened; spec changes only via `spec.md` Change Log | ✅ | ✅ |

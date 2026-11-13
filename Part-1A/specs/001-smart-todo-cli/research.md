@@ -100,17 +100,18 @@ records the design decisions behind them.
 ## R8. Harness design
 
 - **Decision**: `.harness/run_harness.py` (stdlib only). It runs, using `sys.executable -m <tool>`
-  with list arguments:
+  with list arguments. Option `--label NAME` (default `latest`) selects the output folder
+  `evidence/<label>/`, so runs such as `red-baseline` and `final` are kept side by side.
   1. `ruff check .`
   2. `bandit -r src -ll -f txt` (Medium and High severity only; must be zero)
-  3. `pytest --cov=src --cov-report=term-missing --cov-report=xml:evidence/coverage.xml
-     --cov-fail-under=85 --junitxml=evidence/junit.xml`
+  3. `pytest --cov=src --cov-report=term-missing --cov-report=xml:evidence/<label>/coverage.xml
+     --cov-fail-under=85 --junitxml=evidence/<label>/junit.xml`
   4. An AC traceability check: every `AC-\d{3}` found in `spec.md` must appear (as `acNNN`) in
      at least one test function name under `tests/`.
 
-  Each step's stdout and stderr go to `evidence/<step>.txt`. A run summary goes to
-  `evidence/summary.json` (timestamp, Python version, per-step exit code and pass/fail, overall
-  result) and `evidence/summary.md` (human-readable). The harness exits 0 only if every step
+  Each step's stdout and stderr go to `evidence/<label>/<step>.txt`. A run summary goes to
+  `evidence/<label>/summary.json` (timestamp, Python version, per-step exit code and pass/fail,
+  overall result) and `evidence/<label>/summary.md` (human-readable). The harness exits 0 only if every step
   passes.
 - **Rationale**: One command reproduces all constitution gates and leaves auditable evidence.
   The traceability step enforces Principle III automatically.
@@ -123,11 +124,13 @@ records the design decisions behind them.
   - `[project]` `name = "smart-todo"`, `requires-python = ">=3.12"`, `dependencies = []`,
     `[project.optional-dependencies] dev = ["ruff", "bandit", "pytest", "pytest-cov"]`, and
     `[project.scripts] todo = "todo.cli:main"`.
-  - `[build-system]` setuptools (build-time only), `[tool.setuptools.packages.find] where = ["src"]`.
+  - `[build-system]` setuptools (build-time only; permitted by constitution v1.1.0 Principle IV),
+    `[tool.setuptools.packages.find] where = ["src"]`.
   - `[tool.pytest.ini_options]` `pythonpath = ["src"]`, `testpaths = ["tests"]`.
   - `[tool.ruff]` `target-version = "py312"`, `line-length = 100`;
     `[tool.ruff.lint] select = ["E", "F", "W", "I", "B", "UP", "SIM"]`.
-- `pip install -e ".[dev]"` installs the dev tools and the `todo` command, so the spec's
+- `uv pip install --system-certs -e ".[dev]"` (never plain `pip`; the network blocks it) installs
+  the dev tools and the `todo` command, so the spec's
   `todo ...` syntax works. `python -m todo` also works after the editable install, or with
   `$env:PYTHONPATH = "src"`.
 - **Rationale**: Keeps one config file. Editable install makes the spec's command name real.

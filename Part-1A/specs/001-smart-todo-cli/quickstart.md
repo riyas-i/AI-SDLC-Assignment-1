@@ -7,8 +7,11 @@ All commands are PowerShell and run from the `Part-1A` folder.
 ```powershell
 .\.venv\Scripts\Activate.ps1          # Python 3.12 virtual environment
 python --version                      # expect: Python 3.12.x
-python -m pip install -e ".[dev]"     # installs ruff, bandit, pytest, pytest-cov + `todo` command
+uv pip install --system-certs -e ".[dev]"   # installs ruff, bandit, pytest, pytest-cov + `todo` command
 ```
+
+Use only `uv pip install --system-certs ...`. Never use plain `pip`: this network blocks it
+(constitution IV).
 
 ## 2. Try it (end-to-end smoke scenario)
 
@@ -38,8 +41,9 @@ Exact command grammar, output formats and every error message:
 ## 3. Run the quality gates
 
 ```powershell
-python .harness\run_harness.py      # exit 0 only if every gate passes
-Get-Content evidence\summary.md
+python .harness\run_harness.py                 # writes evidence\latest\; exit 0 only if every gate passes
+python .harness\run_harness.py --label final   # writes evidence\final\
+Get-Content evidence\latest\summary.md
 ```
 
 | Gate | Command run by the harness | Pass condition |
@@ -49,7 +53,7 @@ Get-Content evidence\summary.md
 | Tests + coverage | `pytest --cov=src --cov-fail-under=85 ...` | all pass, ≥ 85 % lines |
 | Traceability | every `AC-NNN` in `spec.md` has a `test_acNNN_*` test | no missing ACs |
 
-Evidence files written to `evidence/`: `ruff.txt`, `bandit.txt`, `pytest.txt`, `junit.xml`,
+Evidence files written to `evidence/<label>/` (default label `latest`): `ruff.txt`, `bandit.txt`, `pytest.txt`, `junit.xml`,
 `coverage.xml`, `traceability.txt`, `summary.json`, `summary.md`.
 
 ## 4. Acceptance criteria → test file map
@@ -69,5 +73,5 @@ Test functions are named `test_acNNN_<short_description>`, so this works:
 
 ## 5. Expected outcome
 
-- `python .harness\run_harness.py` prints `OVERALL: PASS` and exits 0.
-- `evidence\summary.json` shows `"overall": "pass"`, with coverage ≥ 85 % and 54/54 ACs traced.
+- `python .harness\run_harness.py --label final` prints `OVERALL: PASS` and exits 0.
+- `evidence\final\summary.json` shows `"overall": "pass"`, with coverage ≥ 85 % and 54/54 ACs traced.

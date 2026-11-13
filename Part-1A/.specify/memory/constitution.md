@@ -1,6 +1,29 @@
 <!--
 Sync Impact Report
 ==================
+Entries are kept as change history (newest first); see CLAUDE.md.
+
+--- Amendment 2026-11-13 ---
+Version change: 1.0.0 → 1.1.0
+Bump rationale: MINOR. Materially expanded guidance in Principle IV: names the permitted build
+backend (setuptools, build-time only) and package installer (uv). No principle removed or
+redefined.
+
+Modified principles:
+  - IV. Standard-Library-Only Runtime (title unchanged; added "Build and install tooling" rules)
+
+Modified sections:
+  - Technology & Platform Constraints (added build backend and installer lines)
+
+Added sections: none
+Removed sections: none
+
+Trigger: /speckit-analyze finding C1. The plan's `[build-system]` uses setuptools for
+`uv pip install -e .`, which v1.0.0 would have required an amendment to allow.
+
+Follow-up TODOs: none.
+
+--- Ratification 2026-11-13 ---
 Version change: (unversioned template) → 1.0.0
 Bump rationale: Initial ratification; all placeholders replaced with concrete governance.
 
@@ -64,8 +87,16 @@ The application at runtime MUST depend only on the Python 3.12 standard library.
 packages are permitted solely as development tools: `ruff`, `bandit`, `pytest`, `pytest-cov`.
 Adding any other dependency — runtime or dev — requires a constitution amendment.
 
+**Build and install tooling** (permitted; never imported by application code):
+- `setuptools` MAY be used as the build backend, declared only in `pyproject.toml`
+  `[build-system]`. It is a build-time dependency, not a runtime one.
+- `uv` is the package installer. Packages MUST be installed into `.venv` with
+  `uv pip install --system-certs ...`; plain `pip` MUST NOT be used (the development network
+  blocks it).
+
 **Rationale**: Zero runtime dependencies eliminate supply-chain risk and make installation
-trivial.
+trivial. A build backend and an installer are needed for an editable install and the `todo`
+command, but neither ships with or runs inside the application.
 
 ### V. Single JSON Store with Atomic Writes
 
@@ -128,6 +159,8 @@ and MUST NOT assume POSIX separators.
 - Language: Python 3.12.
 - Runtime dependencies: Python standard library only (Principle IV).
 - Dev tools: `ruff`, `bandit`, `pytest`, `pytest-cov`, installed into `.venv`.
+- Build backend: `setuptools` (build-time only, `[build-system]`).
+- Installer: `uv pip install --system-certs ...` (never plain `pip`).
 - Storage: a single JSON file written atomically (Principle V).
 - Interface: command-line only, with exit codes per Principle VIII.
 - Platform: Windows + PowerShell (Principle IX).
@@ -160,4 +193,4 @@ pytest --cov=src --cov-fail-under=85
   adherence to Principles I–IX; any justified deviation MUST be recorded in the plan's
   Complexity Tracking table.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-13
+**Version**: 1.1.0 | **Ratified**: 2026-11-13 | **Last Amended**: 2026-11-13

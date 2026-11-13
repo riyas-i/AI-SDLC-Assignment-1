@@ -8,7 +8,7 @@ description: "Task list for Smart Todo CLI"
 **Input**: Design documents from `specs/001-smart-todo-cli/` (plan.md, spec.md, research.md,
 data-model.md, contracts/cli.md, contracts/tasks-file.md, quickstart.md)
 
-**Prerequisites**: plan.md, spec.md, constitution v1.0.0 (`.specify/memory/constitution.md`)
+**Prerequisites**: plan.md, spec.md, constitution v1.1.0 (`.specify/memory/constitution.md`)
 
 **Tests**: Required (constitution Principle III, plus the user's request). Tests are written
 **before** any implementation code and must fail first.
@@ -75,7 +75,7 @@ commands are PowerShell, run from `Part-1A/` with `.venv` activated
   `uv pip install --system-certs -e ".[dev]"`. Then verify with `python -m ruff --version`,
   `python -m bandit --version`, `python -m pytest --version` and
   `python -c "import todo"`. Depends on T001, T002. Covers: constitution IV, IX.
-- [ ] T005 [P] Replace the install command in `specs/001-smart-todo-cli/quickstart.md` (§1) and
+- [x] T005 [P] (Done 2026-11-13 while fixing /speckit-analyze finding I1.) Replace the install command in `specs/001-smart-todo-cli/quickstart.md` (§1) and
   `specs/001-smart-todo-cli/research.md` (R9) with
   `uv pip install --system-certs -e ".[dev]"`, adding a note to never use plain pip.
   Covers: constitution IX (documented commands are valid for this environment).
@@ -347,9 +347,8 @@ such fix in the commit message.
   coverage ≥ 85 %, 54/54 ACs traced). Do not change the gates (constitution VII). Covers:
   constitution I – III, SC-001.
 - [ ] T039 [P] Walk through the quickstart.md §2 smoke scenario manually in a temp folder and
-  confirm each printed line and `$LASTEXITCODE` matches. Update
-  `specs/001-smart-todo-cli/quickstart.md` §3 to point at `evidence\<label>\summary.md` (the
-  harness writes per-label folders). Covers: SC-004, FR-020.
+  confirm each printed line and `$LASTEXITCODE` matches. (Quickstart §3 already points at
+  `evidence\<label>\`, fixed for finding I2.) Covers: SC-004, FR-020.
 - [ ] T040 Commit and push `evidence/final/` together with the code. The commit message must
   quote the coverage percent and `54/54 ACs traced`. Covers: constitution III, VII (evidence
   preserved).
