@@ -68,6 +68,9 @@ SDK facts below were checked against the installed `google-genai` 3.3.0 in `.ven
   checks (OR).
 - **Rationale**: Saves quota, removes model_error risk for the highest-stakes guardrail cases,
   and guarantees FR-030/FR-033 regardless of model behaviour.
+- **Consequence (accepted in spec Revision 2, change 2.1)**: a prohibited keyword match outranks
+  `out_of_scope` and model-only injection signals, e.g. "Write me a poem about beer" →
+  `prohibited_item` (AC-051). The FR-031 phrase check still runs first.
 - **Note**: "pre-approved" does not match any FR-031 phrase (`approve this`, `approve it`,
   `mark as approved` …) — the innocent "pre-approved" evaluation case checks for false positives.
 

@@ -139,6 +139,8 @@ values are traceable (Constitution VII).
 | `counts` | total, scored, passed, failed, model_error (by sub-type), guardrail/policy_limit passed/scored, total retries |
 | `pass_rate` | passed / scored |
 | `verdict` | `PASS` \| `FAIL` \| `INCONCLUSIVE` (FR-105) |
+| `latency` | `p50_ms`, `p95_ms` (first-attempt model cases), `sc008_pass` (SC-008) |
+| `consistency` | only with `--compare-with`: `compared_with`, `matched`, `compared`, `rate`, `mismatches`, `sc007_pass` (SC-007) |
 | `cases` | list of CaseResult |
 
 Never contains the API key or any environment variable values.

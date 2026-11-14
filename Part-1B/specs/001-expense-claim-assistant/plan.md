@@ -95,7 +95,7 @@ src/expense/
 ├── extractor.py               # build prompt from prompts/system.md, call client, json.loads, validate → Extraction
 ├── policy.py                  # LIMITS_SAR, evaluate() → PolicyDecision
 ├── service.py                 # assess(text, today, client) → ClaimAssessment; pre-checks, status, clarification, sanitiser, final validation + invariants
-└── cli.py                     # argparse, exit codes per contracts/cli.md
+└── cli.py                     # build_client(); argparse; exit codes per contracts/cli.md
 evals/
 └── dataset.json               # ≥ 24 synthetic cases (FR-100/101), tags + kind
 .harness/
@@ -151,6 +151,20 @@ Spec Revision 1 (2026-11-14) resolved the plan's earlier follow-ups:
    `policy_limit` ≥ 4, `clarification` ≥ 2, `standard` ≥ 2, ≥ 1 card-masking case, and every
    planning `kind` at least once ([research R10](research.md)). The thresholds are unchanged; with
    24 scored cases at least 21 must pass.
+
+Spec Revision 2 (2026-11-14), after `/speckit-analyze`:
+
+3. **Prohibited-item shortcut** (change 2.1): an FR-033 keyword match rejects as
+   `prohibited_item` without a model call, after the FR-031 phrase check, so it outranks
+   `out_of_scope` and model-only injection signals (AC-051). This matches the design of
+   `service.assess` below and [research R5](research.md).
+4. **SC-007 / SC-008 measurement** (change 2.2): `run_eval.py --compare-with <label>` reports a
+   `consistency` block (SC-007, ≥ 95% identical decisions across two runs); every run reports a
+   `latency` block (SC-008, p95 of first-attempt model cases < 15000 ms).
+5. **CLI attempt reporting** (change 2.3): stderr gets one `retry <n>/3: <sub-type>` line per
+   failed attempt; full attempt lists live in evaluation results.
+6. **CLI testability**: `cli.build_client(api_key)` is the single place a real client is built,
+   so tests patch it and AC-065 can assert that no client is built without a key.
 
 Remaining note: `evidence/eval-results.json` is overwritten with each run as the "latest" pointer;
 the immutable history is `evidence/eval-runs/<label>/` (FR-106).

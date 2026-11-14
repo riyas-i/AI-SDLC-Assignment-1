@@ -34,8 +34,10 @@
 - The model name (`gemini-2.5-flash`), the `GEMINI_API_KEY` variable and the CLI form are named
   because the user input and the constitution mandate them; they are stakeholder constraints, not
   design choices. No language, library or code structure is specified.
-- Judgment calls made without [NEEDS CLARIFICATION] markers are listed under Assumptions (missing
-  currency → SAR, unknown receipt → treated as no receipt, accommodation nights default 1,
-  `not_reimbursable` unused, expected outcome scored as a case-specific invariant). Review them with
-  `/speckit-clarify` if any is wrong.
-- Validation iteration 1: all items pass.
+- Judgment calls from the first draft were resolved in the Clarifications session of 2026-11-14:
+  unknown receipt → treated as no receipt; accommodation limit = 600 × nights (default 1); the
+  expected outcome is scored as a separate fourth `outcome` check (not as an invariant); missing
+  currency → SAR plus an informational reason; transient model errors retried up to 3 times.
+  `not_reimbursable` remains unused (FR-059). Later changes are recorded in the spec's Revision
+  History (Revisions 1 and 2).
+- Validation iteration 1: all items pass. Re-checked after Revision 2 (2026-11-14): all items pass.
