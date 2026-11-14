@@ -13,10 +13,10 @@ import json
 from pathlib import Path
 
 import pytest
-from expense.llm_client import AttemptRecord, ModelError
 
 import run_eval
 from expense import config
+from expense.llm_client import AttemptRecord, ModelError
 
 N_CASES = 24
 

@@ -27,14 +27,13 @@ from collections.abc import Callable
 from datetime import date, datetime
 from pathlib import Path
 
-from expense.llm_client import ModelError
-
 import invariant_check
 import outcome_check
 import quality_check
 import schema_check
 import verdict
 from expense import config
+from expense.llm_client import ModelError
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATASET = ROOT / "evals" / "dataset.json"

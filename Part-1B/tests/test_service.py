@@ -14,11 +14,11 @@ from datetime import date
 from pathlib import Path
 
 import pytest
-from expense.llm_client import ModelError
-from expense.service import UsageError, assess
 from jsonschema import Draft202012Validator
 
 from conftest import REJECTED_DESCRIPTIONS, SCHEMA_KEY_ORDER, StubClient, _claim
+from expense.llm_client import ModelError
+from expense.service import UsageError, assess
 
 ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR = Draft202012Validator(

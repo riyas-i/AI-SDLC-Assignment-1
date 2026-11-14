@@ -12,10 +12,10 @@ from __future__ import annotations
 import json
 
 import pytest
-from expense.llm_client import ModelError
 
 from conftest import SCHEMA_KEY_ORDER, StubClient
 from expense import cli, service
+from expense.llm_client import ModelError
 
 AC001_TEXT = "taxi from airport to client office yesterday, 85 riyals, have receipt"
 AC001_EXTRACTION = {

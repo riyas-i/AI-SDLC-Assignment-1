@@ -11,11 +11,11 @@ import time
 
 import httpx2
 import pytest
-from expense.llm_client import AttemptRecord, GeminiClient, ModelError
 from google.genai import errors
 
 from conftest import FAKE_KEY
 from expense import config, llm_client
+from expense.llm_client import AttemptRecord, GeminiClient, ModelError
 
 SYSTEM = "SYSTEM PROMPT"
 USER = "Today: 2026-11-14\n<expense>\ntaxi 85 SAR yesterday\n</expense>"
