@@ -11,7 +11,7 @@ deterministic injection and prohibited-item checks first. It then asks `gemini-2
 (JSON mode, temperature 0.0) only to *extract* facts and classification signals, validates that
 extraction against a JSON Schema, and decides the final status, policy result, reasons and
 clarification question in deterministic code. Every output is schema-validated and
-invariant-checked before printing. An evaluation harness (`.harness/`) scores at least 40
+invariant-checked before printing. An evaluation harness (`.harness/`) scores at least 24
 synthetic cases on schema, invariants, outcome and quality, and writes evidence with the model
 configuration and retry history (never the key). Technical decisions: [research.md](research.md).
 
@@ -37,7 +37,7 @@ full evaluation takes about 5 min at 7 s between calls.
 **Constraints**: model call timeout 30 s, at most 4 attempts with 1/2/4 s backoff (FR-083);
 free-tier rate limit of about 10 requests per minute; key only from `GEMINI_API_KEY`.
 
-**Scale/Scope**: one expense per invocation; ≥ 40 evaluation cases.
+**Scale/Scope**: one expense per invocation; ≥ 24 evaluation cases (spec Revision 1).
 
 ## Constitution Check
 
@@ -97,7 +97,7 @@ src/expense/
 ├── service.py                 # assess(text, today, client) → ClaimAssessment; pre-checks, status, clarification, sanitiser, final validation + invariants
 └── cli.py                     # argparse, exit codes per contracts/cli.md
 evals/
-└── dataset.json               # ≥ 40 synthetic cases (FR-100/101), tags + kind
+└── dataset.json               # ≥ 24 synthetic cases (FR-100/101), tags + kind
 .harness/
 ├── schema_check.py
 ├── invariant_check.py
@@ -139,16 +139,21 @@ outside the package, so evaluators are independent of the code they judge; pytes
   but `.harness/invariant_check.py` is a separate implementation so a bug in one is caught by the
   other.
 
-## Spec Follow-ups (before implementation)
+## Spec Alignment
 
-1. **model_error sub-types**: add `server` (5xx after retries) and `api_error` (non-retryable 4xx)
-   to FR-081 in a dated spec revision ([research R2](research.md)).
-2. **Dataset size**: the planning input asked for ≥ 18 cases; the spec (FR-100/101) requires ≥ 40
-   with tag minimums. The plan follows the spec, which already covers all requested kinds,
-   including an innocent "pre-approved" claim (tagged `guardrail`, expected `ok` /
-   `within_policy`).
-3. **`evidence/eval-results.json`** is overwritten with each run as the "latest" pointer; the
-   immutable history is `evidence/eval-runs/<label>/` (FR-106).
+Spec Revision 1 (2026-11-14) resolved the plan's earlier follow-ups:
+
+1. **model_error sub-types** (change 1.1): `server` (5xx, retried) and `api_error` (other 4xx, not
+   retried) are now in FR-081/FR-083 with AC-068 and AC-069; `llm_client.py` classifies per
+   [research R2](research.md) and `test_llm_client.py` covers both.
+2. **Dataset size** (change 1.2): minimum 24 cases (was 40). `guardrail` ≥ 4 (injection,
+   out_of_scope, prohibited_item, innocent "pre-approved" claim expected `ok` / `within_policy`),
+   `policy_limit` ≥ 4, `clarification` ≥ 2, `standard` ≥ 2, ≥ 1 card-masking case, and every
+   planning `kind` at least once ([research R10](research.md)). The thresholds are unchanged; with
+   24 scored cases at least 21 must pass.
+
+Remaining note: `evidence/eval-results.json` is overwritten with each run as the "latest" pointer;
+the immutable history is `evidence/eval-runs/<label>/` (FR-106).
 
 ## Complexity Tracking
 

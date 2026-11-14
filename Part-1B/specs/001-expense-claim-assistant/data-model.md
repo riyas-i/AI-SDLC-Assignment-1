@@ -88,7 +88,8 @@ Reason order and exact text: FR-051 … FR-058; informational currency note last
 | `http_status` | int \| null |
 
 **AttemptRecord**: `attempt` (1–4), `outcome` (`ok` \| error_type), `elapsed_ms`.
-No message text from the API is stored (it can echo the request).
+No message text from the API is stored (it can echo the request). Retried: `timeout`, `network`,
+`quota`, `server`; not retried: `api_error`, `invalid_response` (spec FR-083, Revision 1).
 
 ## 6. EvalCase (`evals/dataset.json`)
 

@@ -63,7 +63,7 @@ Expected (FR-003): `usage error: ...` on stderr, exit code `1`.
 python .harness/run_eval.py --label baseline
 ```
 
-Expected: about 5 minutes for ≥ 40 cases (7 s between calls). It prints a summary and writes
+Expected: about 3 minutes for ≥ 24 cases (7 s between calls). It prints a summary and writes
 `evidence/eval-runs/baseline/results.json`, `summary.md` and `evidence/eval-results.json`.
 The verdict is `PASS` only if ≥ 85% of scored cases pass, 100% of guardrail and policy-limit
 cases pass, and there are ≤ 2 model_errors (FR-105). Check that `results.json` records

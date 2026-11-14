@@ -37,10 +37,8 @@ SDK facts below were checked against the installed `google-genai` 3.3.0 in `.ven
   classes of whichever of the two modules is importable (built once at import time).
 - **Rationale**: Our own loop makes every attempt visible (clarification Q5, Constitution VI);
   SDK retries would be hidden.
-- **Spec follow-up**: FR-081 lists four sub-types. `server` (5xx after retries) and `api_error`
-  (non-retryable 4xx, e.g. invalid key) are needed so no failure is misreported as `network`.
-  Both are still `model_error` (exit 2) and do not change any expected result. Record this in a
-  dated spec revision before implementation.
+- **Spec alignment**: `server` and `api_error` were added to FR-081/FR-083 by spec Revision 1
+  (2026-11-14, change 1.1; AC-068, AC-069), so no failure is misreported as `network`.
 
 ## R3. API key handling (Constitution IV, FR-084, FR-085)
 
@@ -58,7 +56,7 @@ SDK facts below were checked against the installed `google-genai` 3.3.0 in `.ven
 - **Decision**: `config.CALL_DELAY_SECONDS = 7.0`, applied between consecutive model calls in
   `run_eval.py` only (the CLI makes one call). Recorded in results.
 - **Rationale**: The free tier for `gemini-2.5-flash` allows about 10 requests per minute; 7 s
-  keeps a 40-case run (~5 min) under that limit, so 429 retries stay rare.
+  keeps a 24-case run (~3 min) under that limit, so 429 retries stay rare.
 - **Alternatives**: rely on 429 retries alone (1+2+4 s backoff is too short for a per-minute
   window, risking `quota` model_errors and an INCONCLUSIVE run).
 
@@ -116,12 +114,15 @@ SDK facts below were checked against the installed `google-genai` 3.3.0 in `.ven
 
 ## R10. Dataset size
 
-- **Decision**: `evals/dataset.json` holds **at least 40 cases** meeting the FR-101 tag minimums.
-  Each case also carries a `kind` (normal, boundary, ambiguous, missing_info, malformed,
-  policy_limit, adversarial) so the user's planning categories are all covered (≥ 18 required by
-  the planning input is a lower bound already exceeded).
-- **Rationale**: The spec (FR-100) is authoritative and cases can't be removed later
-  (Constitution VII), so the larger set is fixed from the start.
+- **Decision**: `evals/dataset.json` holds **at least 24 cases** (spec Revision 1, change 1.2)
+  meeting the FR-101 tag minimums: `guardrail` ≥ 4 (injection, out_of_scope, prohibited_item,
+  innocent "pre-approved" claim), `policy_limit` ≥ 4, `clarification` ≥ 2, `standard` ≥ 2, plus
+  ≥ 1 card-masking case. Each case also carries a `kind` (normal, boundary, ambiguous,
+  missing_info, malformed, policy_limit, adversarial), and every kind appears at least once.
+- **Rationale**: 24 cases fit the free-tier daily request budget with room for re-runs and
+  retries, and every expected value can be checked by hand. Cases can't be removed later
+  (Constitution VII), so the set is fixed carefully from the start. With 24 scored cases, at
+  least 21 must pass to reach 85%.
 
 ## R11. Packaging and tooling
 

@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+**Revision**: 1 (2026-11-14) — see [Revision History](#revision-history)
+
 **Input**: User description: "Build an Expense Claim Assistant. An employee types an expense in free
 text (e.g. "taxi from airport to client office yesterday, 85 riyals, have receipt"); the app sends it
 to Gemini, which extracts the claim as JSON; then deterministic Python code applies the company
@@ -47,6 +49,31 @@ Reference date: every example and acceptance criterion in this spec uses `--toda
 - Q: Should transient model-call failures be retried before reporting `model_error`? → A: Up to 3
   retries with exponential backoff for timeout, network, server and quota errors, every attempt
   recorded; invalid responses are never retried (FR-083, AC-060, AC-061, AC-063, AC-067).
+
+## Revision History
+
+Dated change notes. Each entry states what changed, why, and confirms Constitution VII (no
+threshold lowered, no existing case deleted, no expected result of an existing case changed).
+
+### Revision 1 — 2026-11-14
+
+- **Change 1.1 — model_error sub-types `server` and `api_error` added (FR-081, FR-083, AC-068,
+  AC-069).** Before: sub-types `timeout`, `quota`, `network`, `invalid_response`. After: also
+  `server` (HTTP 5xx; retried per FR-083, reported if the last attempt fails) and `api_error`
+  (any other non-429 4xx, e.g. invalid or unauthorised key; not retried). Reason: the planned SDK
+  integration (plan research R2) raises server and client errors that fit none of the original
+  sub-types; without them they would be misreported as `network`. Impact: both are still
+  `model_error` (exit code `2`, excluded from the score, counted toward the INCONCLUSIVE limit);
+  no threshold or expected result changes.
+- **Change 1.2 — evaluation dataset minimum reduced from 40 to 24 cases (FR-100, FR-101).**
+  Before: ≥ 40 cases with `guardrail` ≥ 12, `policy_limit` ≥ 12, `clarification` ≥ 6,
+  `standard` ≥ 8. After: ≥ 24 cases, every tag kept with ≥ 2 cases, `guardrail` ≥ 4 and
+  `policy_limit` ≥ 4, including the innocent "pre-approved" claim. Reason: the free-tier daily
+  request limit and the requester's manual review of every expected value make 40 cases
+  impractical. Made before any evaluation case exists, so no case is deleted. Impact: the pass
+  thresholds in FR-103 and FR-105 are unchanged (with 24 scored cases, at least 21 must pass for
+  ≥ 85%); AC-070 – AC-076 remain valid as verdict-arithmetic examples and are not dataset-size
+  requirements.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -282,6 +309,12 @@ not print a claim.
   extraction for AC-001's input, **When** the CLI runs, **Then** the output equals AC-001's
   expected output, the exit code is `0`, and the failed first attempt is recorded on standard
   error; in an evaluation run the case records `attempts` `2` and is scored normally.
+- **AC-068** (Revision 1): **Given** the API returns a server error (HTTP 503) on all 4 attempts,
+  **When** the CLI runs, **Then** exactly 4 attempts are made, standard error contains
+  `model_error: server`, nothing is written to standard output, and the exit code is `2`.
+- **AC-069** (Revision 1): **Given** the API returns HTTP 403 (unauthorised key) on the first
+  attempt, **When** the CLI runs, **Then** exactly 1 attempt is made (no retry), standard error
+  contains `model_error: api_error` and not the key value, and the exit code is `2`.
 - **AC-065**: **Given** `GEMINI_API_KEY` is not set, **When** the CLI runs, **Then** standard error
   contains `GEMINI_API_KEY is not set`, no model call is made, and the exit code is `1`.
 - **AC-066**: **Given** any failure above with a key set, **When** output and logs are inspected,
@@ -525,15 +558,21 @@ verdict arithmetic; then run against the live model.
 **Model errors**
 
 - **FR-080**: A model call MUST time out after 30 seconds.
-- **FR-081**: Timeout, quota (rate limit), network failure and invalid response (non-JSON or
-  failing the extraction schema) MUST be classified as `model_error` with sub-type `timeout`,
-  `quota`, `network` or `invalid_response`.
+- **FR-081**: Model-call failures MUST be classified as `model_error` with one of these sub-types
+  (Revision 1 added `server` and `api_error`):
+  - `timeout`: no response within the FR-080 limit;
+  - `network`: connection or transport failure;
+  - `quota`: rate limit or quota exceeded (HTTP 429);
+  - `server`: server error (HTTP 5xx);
+  - `api_error`: any other client error (HTTP 4xx other than 429, e.g. invalid or unauthorised
+    key, bad request);
+  - `invalid_response`: empty, non-JSON, or failing the extraction schema.
 - **FR-082**: On `model_error` the CLI MUST print nothing to standard output, print
   `model_error: <sub-type>` to standard error, and exit with code `2`.
 - **FR-083**: Timeout, network, server-error and quota failures MUST be retried up to 3 times
   (4 attempts in total) with exponential backoff waits of 1, 2 and 4 seconds; if the last attempt
-  still fails, the result is `model_error` with the last failure's sub-type. Invalid responses
-  (non-JSON or failing the extraction schema) MUST NOT be retried. Every attempt and its outcome
+  still fails, the result is `model_error` with the last failure's sub-type. `invalid_response`
+  and `api_error` failures MUST NOT be retried. Every attempt and its outcome
   MUST be recorded (in evaluation results per case, and on standard error for the CLI).
 - **FR-084**: If `GEMINI_API_KEY` is not set, the CLI MUST print `GEMINI_API_KEY is not set` to
   standard error, make no model call, and exit with code `1`.
@@ -547,15 +586,21 @@ verdict arithmetic; then run against the live model.
 
 **Evaluation**
 
-- **FR-100**: The evaluation case set MUST contain at least 40 synthetic cases, each with: id,
+- **FR-100**: The evaluation case set MUST contain at least 24 synthetic cases (Revision 1; was
+  40), each with: id,
   input text, `--today`, tags, expected `status`, `rejection_reason`, `policy_result`,
   `missing_fields`, `category`, `amount`, `expense_date`, accommodation nights (when relevant) and
   description keywords.
-- **FR-101**: Cases MUST be tagged; minimum counts: `guardrail` ≥ 12 (prompt injection ≥ 4,
-  out_of_scope ≥ 3, prohibited_item ≥ 4 covering alcohol, personal shopping and traffic fines,
-  card masking ≥ 1), `policy_limit` ≥ 12 (each category limit at and above the limit, receipt rule,
-  currency rule, age rule at 90 and 91 days, client_entertainment, other), `clarification` ≥ 6,
-  `standard` ≥ 8.
+- **FR-101**: Cases MUST be tagged with one or more of `guardrail`, `policy_limit`,
+  `clarification`, `standard`; every tag MUST have at least 2 cases, with these minimums
+  (Revision 1):
+  - `guardrail` ≥ 4, including at least one `prompt_injection`, one `out_of_scope`, one
+    `prohibited_item`, and the innocent claim mentioning "pre-approved" (expected `status` `ok`,
+    i.e. not rejected);
+  - `policy_limit` ≥ 4;
+  - `clarification` ≥ 2;
+  - `standard` ≥ 2;
+  - at least 1 case (any tag) contains a card number that must be masked.
 - **FR-102**: Each case MUST be scored on:
   - **schema** (pass/fail): output conforms to FR-010;
   - **invariants** (pass/fail): INV-1 to INV-7 hold;
