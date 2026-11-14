@@ -1,0 +1,4 @@
+# Build and packaging artefacts (root .gitignore already covers .env, .venv, caches)
+*.egg-info/
+build/
+dist/

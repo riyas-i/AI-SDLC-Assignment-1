@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/expense/claim.schema.json",
+  "title": "Expense claim assessment (CLI output)",
+  "description": "Output Schema Contract, spec FR-010. Exactly 13 keys, no extras. Cross-field rules (INV-1..INV-7) are checked by code, not by this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "category",
+    "amount",
+    "currency",
+    "expense_date",
+    "merchant",
+    "has_receipt",
+    "description",
+    "policy_result",
+    "policy_reasons",
+    "missing_fields",
+    "clarification_question",
+    "rejection_reason"
+  ],
+  "properties": {
+    "status": {
+      "enum": ["ok", "needs_clarification", "rejected"]
+    },
+    "category": {
+      "enum": [
+        "meals",
+        "transport",
+        "accommodation",
+        "office_supplies",
+        "client_entertainment",
+        "other",
+        null
+      ]
+    },
+    "amount": {
+      "oneOf": [
+        { "type": "number", "exclusiveMinimum": 0 },
+        { "type": "null" }
+      ]
+    },
+    "currency": {
+      "enum": ["SAR", "USD", "EUR", null]
+    },
+    "expense_date": {
+      "oneOf": [
+        { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        { "type": "null" }
+      ]
+    },
+    "merchant": {
+      "oneOf": [
+        { "type": "string", "maxLength": 80 },
+        { "type": "null" }
+      ]
+    },
+    "has_receipt": {
+      "type": ["boolean", "null"]
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "policy_result": {
+      "enum": ["within_policy", "needs_manager_approval", "not_reimbursable", null]
+    },
+    "policy_reasons": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "missing_fields": {
+      "type": "array",
+      "items": { "enum": ["amount", "category", "expense_date"] },
+      "uniqueItems": true
+    },
+    "clarification_question": {
+      "type": ["string", "null"]
+    },
+    "rejection_reason": {
+      "enum": ["prohibited_item", "out_of_scope", "prompt_injection", null]
+    }
+  }
+}
