@@ -99,7 +99,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"usage error: {exc}", file=sys.stderr)
         return EXIT_USAGE
     except ModelError as exc:
-        print(f"model_error: {exc.error_type}", file=sys.stderr)
+        detail = ""
+        if exc.http_status is not None:  # status code and status word only, never API text
+            detail = f" (http {exc.http_status}" + (
+                f" {exc.api_status})" if exc.api_status else ")")
+        print(f"model_error: {exc.error_type}{detail}", file=sys.stderr)
         return EXIT_MODEL_ERROR
     except service.InternalError as exc:
         print(f"internal_error: {exc.check}", file=sys.stderr)

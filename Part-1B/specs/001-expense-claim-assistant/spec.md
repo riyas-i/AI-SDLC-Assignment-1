@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Revision**: 3 (2026-11-14) — see [Revision History](#revision-history)
+**Revision**: 4 (2026-11-14) — see [Revision History](#revision-history)
 
 **Input**: User description: "Build an Expense Claim Assistant. An employee types an expense in free
 text (e.g. "taxi from airport to client office yesterday, 85 riyals, have receipt"); the app sends it
@@ -18,7 +18,7 @@ guardrails, evaluation threshold and scoring — all captured verbatim in the se
 ## Overview
 
 An employee describes one expense in free text. The assistant uses a language model
-(`gemini-2.5-flash`, per the constitution) only to **extract** facts from the text and to classify
+(`gemini-3.5-flash`, per the constitution; Revision 4) only to **extract** facts from the text and to classify
 the request. Deterministic code then decides the final `status`, applies the company policy table,
 builds the clarification question, masks card numbers, and emits one JSON object that conforms to
 the Output Schema Contract below. The assistant is advisory only: it never approves, pays or
@@ -113,6 +113,35 @@ expected result of an existing case changed.
   (≥ 24) and every FR-101 tag minimum remain satisfied; FR-103 and FR-105 thresholds are
   unchanged (with 25 scored cases, at least 22 must pass for ≥ 85%). With this change the
   requester approved the dataset's expected values.
+
+### Revision 4 — 2026-11-14
+
+Service-side model availability failure; **not an application bug**. No threshold lowered, no
+case deleted, no expected result of an existing case changed. Constitution amended to v1.1.0 in
+the same change.
+
+- **Change 4.1 — model `gemini-2.5-flash` → `gemini-3.5-flash` (FR-090, AC-079, Overview,
+  Assumptions).** Before: `gemini-2.5-flash`. After: `gemini-3.5-flash`. Reason: evaluation run
+  `baseline` (`evidence/eval-runs/baseline/`) was `INCONCLUSIVE`: 22 of 25 cases ended in
+  `model_error: api_error` on the first attempt; only the 3 cases decided without a model call
+  were scored. Diagnostic calls with the project key showed HTTP 404 `NOT_FOUND` for
+  `gemini-2.5-flash` on API versions `v1` and `v1beta`, with and without the response schema,
+  and the API message states the model is no longer available to new users, although
+  `models.list()` still lists it. The request format, the schema and the key were therefore
+  not the cause. `gemini-3.5-flash` is listed with `generateContent` and passed a verification
+  call with the application's own request (schema accepted, valid extraction for the AC-001
+  input). Impact: temperature `0.0`, all thresholds (FR-103, FR-105), all 25 cases and their
+  expected values are unchanged. The `baseline` evidence is kept; the evaluation is re-run
+  under a new label. The three unit-test assertions that check the configured model name
+  (`tests/test_llm_client.py` ×2, `tests/test_run_eval.py` ×1; FR-090, AC-079) now expect
+  `gemini-3.5-flash`. This spec-driven test update was approved by the requester; the
+  assertions remain exact-equality checks, so no check is weakened (Constitution VIII).
+- **Change 4.2 — model-error evidence detail (FR-083, FR-085).** Attempts that the API answers
+  with an HTTP error now also record the HTTP status code and Gemini's status word (e.g.
+  `NOT_FOUND`), and the CLI's `model_error` line appends them, e.g.
+  `model_error: api_error (http 404 NOT_FOUND)`. The API message text is still never recorded,
+  because it can echo the request or the key. Reason: the `baseline` evidence could not show
+  the cause of the failures. No requirement or threshold changes.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -397,7 +426,7 @@ verdict arithmetic; then run against the live model.
 - **AC-078**: **Given** a case whose output fails schema validation, **When** scored, **Then** the
   case fails regardless of quality.
 - **AC-079**: **Given** any completed run, **When** the result file is inspected, **Then** it
-  records `model` `"gemini-2.5-flash"`, the configured `temperature` `0.0`, the threshold values
+  records `model` `"gemini-3.5-flash"` (Revision 4), the configured `temperature` `0.0`, the threshold values
   (`0.85` pass rate, `1.0` guardrail and policy-limit rates, `0.8` case quality, max `2`
   model_errors), per-case results (schema, invariants, outcome, quality), counts and the verdict.
 - **AC-080**: **Given** a case expecting `status` `"rejected"` and `rejection_reason`
@@ -629,7 +658,7 @@ verdict arithmetic; then run against the live model.
 
 **Configuration**
 
-- **FR-090**: The model name `gemini-2.5-flash` and temperature `0.0` MUST be fixed in a single
+- **FR-090** (Revision 4): The model name `gemini-3.5-flash` (was `gemini-2.5-flash`) and temperature `0.0` MUST be fixed in a single
   configuration location.
 
 **Evaluation**
@@ -723,5 +752,5 @@ verdict arithmetic; then run against the live model.
 - With four equally weighted quality components, a quality ≥ 0.8 effectively requires exact
   category, amount and date matches.
 - Temperature is fixed at `0.0` to maximise reproducibility.
-- The `gemini-2.5-flash` model and Gemini API are mandated by the constitution; the API key is
+- The `gemini-3.5-flash` model (Revision 4) and Gemini API are mandated by the constitution; the API key is
   supplied via the `GEMINI_API_KEY` environment variable.

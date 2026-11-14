@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
-MODEL_NAME = "gemini-2.5-flash"
+MODEL_NAME = "gemini-3.5-flash"  # spec Revision 4 / constitution v1.1.0
 TEMPERATURE = 0.0
 TIMEOUT_SECONDS = 30
 RETRY_BACKOFF_SECONDS = (1, 2, 4)

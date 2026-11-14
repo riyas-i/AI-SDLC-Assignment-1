@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import importlib
 import json
+import re
 import sys
 import time
 from dataclasses import dataclass
@@ -49,6 +50,26 @@ class AttemptRecord:
     elapsed_ms: int
 
 
+@dataclass(frozen=True)
+class ApiErrorAttemptRecord(AttemptRecord):
+    """An attempt the API answered with an HTTP error: adds the HTTP status code and Gemini's
+    short status word (e.g. `INVALID_ARGUMENT`). The API's message text is never kept: it can
+    echo the request or the key (FR-085)."""
+
+    http_status: int | None = None
+    api_status: str | None = None
+
+
+_STATUS_WORD = re.compile(r"[A-Z][A-Z_]{0,63}")
+
+
+def _status_word(value: object) -> str | None:
+    """Gemini's status word only if it is a bare upper-case token; anything else is dropped."""
+    if isinstance(value, str) and _STATUS_WORD.fullmatch(value):
+        return value
+    return None
+
+
 class ModelError(Exception):
     """A model-call failure. `str()` is only `model_error: <type>` (never API text or the key)."""
 
@@ -57,24 +78,36 @@ class ModelError(Exception):
         error_type: str,
         attempts: list[AttemptRecord] | None = None,
         http_status: int | None = None,
+        api_status: str | None = None,
     ) -> None:
         super().__init__(error_type)
         self.error_type = error_type
         self.attempts: list[AttemptRecord] = list(attempts or [])
         self.http_status = http_status
+        self.api_status = _status_word(api_status)
 
     def __str__(self) -> str:
         return f"model_error: {self.error_type}"
 
     def __repr__(self) -> str:
-        return f"ModelError(error_type={self.error_type!r}, http_status={self.http_status!r})"
+        return (f"ModelError(error_type={self.error_type!r}, http_status={self.http_status!r}, "
+                f"api_status={self.api_status!r})")
 
 
 class _AttemptFailure(Exception):
-    def __init__(self, error_type: str, http_status: int | None = None) -> None:
+    def __init__(self, error_type: str, http_status: int | None = None,
+                 api_status: str | None = None, from_api: bool = False) -> None:
         super().__init__(error_type)
         self.error_type = error_type
         self.http_status = http_status
+        self.api_status = _status_word(api_status)
+        self.from_api = from_api
+
+    def record(self, attempt: int, elapsed_ms: int) -> AttemptRecord:
+        if self.from_api:
+            return ApiErrorAttemptRecord(attempt, self.error_type, elapsed_ms,
+                                         self.http_status, self.api_status)
+        return AttemptRecord(attempt, self.error_type, elapsed_ms)
 
 
 def _load_extraction_schema() -> dict:
@@ -106,11 +139,14 @@ def _classify(exc: BaseException) -> _AttemptFailure | None:
     if isinstance(exc, errors.APIError):
         code = getattr(exc, "code", None)
         status = code if isinstance(code, int) else None
+        word = getattr(exc, "status", None)
         if status == 429:
-            return _AttemptFailure("quota", status)
-        if isinstance(exc, errors.ServerError) or (status is not None and status >= 500):
-            return _AttemptFailure("server", status)
-        return _AttemptFailure("api_error", status)
+            error_type = "quota"
+        elif isinstance(exc, errors.ServerError) or (status is not None and status >= 500):
+            error_type = "server"
+        else:
+            error_type = "api_error"
+        return _AttemptFailure(error_type, status, word, from_api=True)
     return None
 
 
@@ -170,14 +206,14 @@ class GeminiClient:
                 result = self._attempt(system, user)
             except _AttemptFailure as failure:
                 elapsed = round((time.perf_counter() - start) * 1000)
-                attempts.append(AttemptRecord(number, failure.error_type, elapsed))
+                attempts.append(failure.record(number, elapsed))
                 if failure.error_type in RETRIED and number < max_attempts:
                     print(f"retry {number}/{len(backoff)}: {failure.error_type}",
                           file=sys.stderr)
                     time.sleep(backoff[number - 1])
                     continue
                 raise ModelError(failure.error_type, list(attempts),
-                                 failure.http_status) from None
+                                 failure.http_status, failure.api_status) from None
             elapsed = round((time.perf_counter() - start) * 1000)
             attempts.append(AttemptRecord(number, "ok", elapsed))
             return result

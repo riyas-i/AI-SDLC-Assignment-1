@@ -1,6 +1,28 @@
 <!--
 Sync Impact Report — change history (append a new dated entry on every amendment; keep old ones)
 
+## 2026-11-14 — v1.1.0 (model availability amendment)
+- Version change: 1.0.0 → 1.1.0 (MINOR: the mandated model value changes; no principle is
+  removed or redefined)
+- Modified principles: V. Reproducible Model Configuration — model `gemini-2.5-flash` →
+  `gemini-3.5-flash`; added the rule that changing the model requires a constitution amendment
+  and a dated spec revision
+- Modified sections: Technology & Environment Constraints — model provider line updated to
+  `gemini-3.5-flash`
+- Added principles/sections: none
+- Removed principles/sections: none
+- Reason: service-side model availability failure, not an application bug. The evaluation run
+  `baseline` was INCONCLUSIVE with 22 `model_error: api_error` cases. Diagnostic calls on
+  2026-11-14 showed HTTP 404 `NOT_FOUND` for `gemini-2.5-flash` on API versions `v1` and
+  `v1beta`, with and without the response schema; the API message states the model is no
+  longer available to new users, although `models.list()` still lists it for this key.
+  `gemini-3.5-flash` is listed with `generateContent` and passed a verification call using
+  the application's own request (schema accepted, valid extraction).
+- Unchanged: temperature 0.0, every threshold, every evaluation case and expected result
+  (Principle VII).
+- Follow-up TODOs: spec.md Revision 4 (FR-090, AC-079); re-run the evaluation under a new
+  label; earlier evidence (`baseline`) is kept.
+
 ## 2026-11-14 — v1.0.0 (initial ratification)
 - Version change: (unversioned template) → 1.0.0
 - Modified principles: all template placeholders replaced (initial ratification)
@@ -68,8 +90,9 @@ Rationale: Leaked credentials are an immediate security and cost risk.
 
 ### V. Reproducible Model Configuration
 
-- The model name (`gemini-2.5-flash`) and temperature MUST be fixed in a single configuration
+- The model name (`gemini-3.5-flash`) and temperature MUST be fixed in a single configuration
   location, not scattered or overridden ad hoc.
+- Changing the model requires an amendment of this constitution and a dated spec revision.
 - Every evaluation result MUST record the model name and temperature used.
 
 Rationale: Evaluation results are only comparable when the configuration that produced them
@@ -121,7 +144,8 @@ Rationale: Avoids privacy and confidentiality exposure in a repository and in mo
 - Runtime dependencies: `google-genai`, `python-dotenv`, `jsonschema`. Adding another runtime
   dependency requires a justified spec/plan change.
 - Development tools: `pytest`, `ruff`.
-- Model provider: Google Gemini API, model `gemini-2.5-flash`.
+- Model provider: Google Gemini API, model `gemini-3.5-flash` (v1.1.0; was
+  `gemini-2.5-flash`).
 
 ## Development Workflow & Quality Gates
 
@@ -147,4 +171,4 @@ Rationale: Avoids privacy and confidentiality exposure in a repository and in mo
 - Every spec, plan, task list and review MUST check compliance with these principles;
   any deviation MUST be documented and justified, or rejected.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-14 | **Last Amended**: 2026-11-14
+**Version**: 1.1.0 | **Ratified**: 2026-11-14 | **Last Amended**: 2026-11-14

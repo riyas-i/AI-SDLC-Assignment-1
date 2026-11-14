@@ -7,7 +7,7 @@
 ## Summary
 
 A Python 3.12 CLI, `expense "<text>" --today YYYY-MM-DD`, masks card numbers and runs
-deterministic injection and prohibited-item checks first. It then asks `gemini-2.5-flash`
+deterministic injection and prohibited-item checks first. It then asks `gemini-3.5-flash` (spec Revision 4; was `gemini-2.5-flash`)
 (JSON mode, temperature 0.0) only to *extract* facts and classification signals, validates that
 extraction against a JSON Schema, and decides the final status, policy result, reasons and
 clarification question in deterministic code. Every output is schema-validated and

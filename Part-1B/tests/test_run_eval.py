@@ -165,7 +165,7 @@ def test_main_without_key_is_setup_error(tmp_path, dataset_file, capsys):
 def test_records_configuration_and_thresholds(tmp_path, cases, dataset_file, waits):
     doc = _run(cases, FakeAssess(cases), tmp_path / "ev", "meta", dataset_file, waits)
     cfg = doc["config"]
-    assert cfg["model"] == "gemini-2.5-flash" == config.MODEL_NAME
+    assert cfg["model"] == "gemini-3.5-flash" == config.MODEL_NAME  # spec Revision 4
     assert cfg["temperature"] == 0.0
     assert cfg["call_delay_seconds"] == config.CALL_DELAY_SECONDS
     assert cfg["timeout_seconds"] == config.TIMEOUT_SECONDS

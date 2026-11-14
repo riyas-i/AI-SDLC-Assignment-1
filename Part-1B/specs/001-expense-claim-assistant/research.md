@@ -55,7 +55,7 @@ SDK facts below were checked against the installed `google-genai` 3.3.0 in `.ven
 
 - **Decision**: `config.CALL_DELAY_SECONDS = 7.0`, applied between consecutive model calls in
   `run_eval.py` only (the CLI makes one call). Recorded in results.
-- **Rationale**: The free tier for `gemini-2.5-flash` allows about 10 requests per minute; 7 s
+- **Rationale**: The free tier for `gemini-2.5-flash` allowed about 10 requests per minute (the same pacing is kept for `gemini-3.5-flash`, spec Revision 4); 7 s
   keeps a 24-case run (~3 min) under that limit, so 429 retries stay rare.
 - **Alternatives**: rely on 429 retries alone (1+2+4 s backoff is too short for a per-minute
   window, risking `quota` model_errors and an INCONCLUSIVE run).

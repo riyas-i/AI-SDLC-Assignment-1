@@ -109,7 +109,7 @@ def _outcomes(attempts) -> list[str]:
 
 
 def test_config_values():
-    assert config.MODEL_NAME == "gemini-2.5-flash"
+    assert config.MODEL_NAME == "gemini-3.5-flash"  # spec Revision 4
     assert config.TEMPERATURE == 0.0
     assert config.TIMEOUT_SECONDS == 30
     assert tuple(config.RETRY_BACKOFF_SECONDS) == (1, 2, 4)
@@ -140,7 +140,7 @@ def test_first_attempt_success(sdk, waits, capsys):
     assert init["http_options"].retry_options.attempts == 1  # SDK retries disabled (R2)
 
     call = models.calls[0]
-    assert call["model"] == "gemini-2.5-flash"
+    assert call["model"] == "gemini-3.5-flash"  # spec Revision 4
     assert USER in str(call["contents"])
     cfg = call["config"]
     assert cfg.system_instruction == SYSTEM

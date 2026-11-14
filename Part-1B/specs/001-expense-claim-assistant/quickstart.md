@@ -67,7 +67,7 @@ Expected: about 3 minutes for ≥ 24 cases (7 s between calls). It prints a summ
 `evidence/eval-runs/baseline/results.json`, `summary.md` and `evidence/eval-results.json`.
 The verdict is `PASS` only if ≥ 85% of scored cases pass, 100% of guardrail and policy-limit
 cases pass, and there are ≤ 2 model_errors (FR-105). Check that `results.json` records
-`model: gemini-2.5-flash`, `temperature: 0.0`, the `google-genai` version and per-case
+`model: gemini-3.5-flash` (spec Revision 4), `temperature: 0.0`, the `google-genai` version and per-case
 `attempts`, and does not contain the key:
 
 ```powershell
