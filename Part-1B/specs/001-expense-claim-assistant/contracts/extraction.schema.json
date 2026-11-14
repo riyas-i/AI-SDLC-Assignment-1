@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/expense/extraction.schema.json",
+  "title": "Model extraction (internal)",
+  "description": "What the model returns (spec FR-020). Facts and classification signals only; never status, policy_result or policy_reasons (FR-021). Validated with jsonschema before use; failure = model_error invalid_response.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "is_expense_request",
+    "prompt_injection",
+    "prohibited_item",
+    "multiple_expenses",
+    "category",
+    "amount",
+    "currency_code",
+    "expense_date",
+    "merchant",
+    "has_receipt",
+    "nights",
+    "description"
+  ],
+  "properties": {
+    "is_expense_request": { "type": "boolean" },
+    "prompt_injection": { "type": "boolean" },
+    "prohibited_item": { "type": "boolean" },
+    "multiple_expenses": { "type": "boolean" },
+    "category": {
+      "enum": [
+        "meals",
+        "transport",
+        "accommodation",
+        "office_supplies",
+        "client_entertainment",
+        "other",
+        null
+      ]
+    },
+    "amount": { "type": ["number", "null"] },
+    "currency_code": {
+      "description": "Currency exactly as stated, normalised to an upper-case 3-letter code (e.g. SAR, USD, EUR, GBP), or null if not stated. Defaulting to SAR is done by code.",
+      "oneOf": [
+        { "type": "string", "pattern": "^[A-Z]{3}$" },
+        { "type": "null" }
+      ]
+    },
+    "expense_date": {
+      "description": "Resolved from --today. May be in the future; code checks.",
+      "oneOf": [
+        { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        { "type": "null" }
+      ]
+    },
+    "merchant": { "type": ["string", "null"] },
+    "has_receipt": { "type": ["boolean", "null"] },
+    "nights": {
+      "description": "Accommodation nights if stated, else null.",
+      "oneOf": [
+        { "type": "integer", "minimum": 1 },
+        { "type": "null" }
+      ]
+    },
+    "description": { "type": "string" }
+  }
+}
