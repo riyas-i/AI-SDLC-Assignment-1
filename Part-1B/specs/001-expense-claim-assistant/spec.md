@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Revision**: 2 (2026-11-14) — see [Revision History](#revision-history)
+**Revision**: 3 (2026-11-14) — see [Revision History](#revision-history)
 
 **Input**: User description: "Build an Expense Claim Assistant. An employee types an expense in free
 text (e.g. "taxi from airport to client office yesterday, 85 riyals, have receipt"); the app sends it
@@ -96,6 +96,23 @@ deleted, no expected result of an existing case changed.
 - **Change 2.3 — CLI attempt reporting clarified (FR-083, I3).** The CLI writes one standard-error
   line per failed attempt and nothing for a first-attempt success; the complete attempt list
   (including successes) is recorded in evaluation results. Behaviour is unchanged from the plan.
+
+### Revision 3 — 2026-11-14
+
+Requester review of `evals/dataset.json` (tasks T009). No threshold lowered, no case deleted, no
+expected result of an existing case changed.
+
+- **Change 3.1 — evaluation case P-09 added; dataset now 25 cases (FR-053, FR-100, FR-101).**
+  Before: 24 cases (`policy_limit` 8). After: 25 cases (`policy_limit` 9). New case **P-09**
+  (kind `boundary`, tag `policy_limit`): input `"coffee with the team yesterday, 75 SAR"`,
+  `--today 2026-11-14`; expected `status` `"ok"`, `rejection_reason` `null`, `policy_result`
+  `"needs_manager_approval"`, `missing_fields` `[]`, `category` `"meals"`, `amount` `75`,
+  `expense_date` `"2026-11-13"`, nights `null`, description keyword `"coffee"`. Reason: it tests
+  clarification answer Q1 (receipt not mentioned counts as no receipt, FR-053): the amount is
+  within the meals limit, so only the receipt rule can trigger approval. Impact: FR-100's minimum
+  (≥ 24) and every FR-101 tag minimum remain satisfied; FR-103 and FR-105 thresholds are
+  unchanged (with 25 scored cases, at least 22 must pass for ≥ 85%). With this change the
+  requester approved the dataset's expected values.
 
 ## User Scenarios & Testing *(mandatory)*
 

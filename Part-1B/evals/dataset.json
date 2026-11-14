@@ -1,5 +1,5 @@
 {
-  "spec_version": "Revision 2",
+  "spec_version": "Revision 3",
   "revised": "2026-11-14",
   "today_default": "2026-11-14",
   "cases": [
@@ -327,6 +327,29 @@
         ]
       },
       "spec_ref": "AC-022"
+    },
+    {
+      "id": "P-09",
+      "kind": "boundary",
+      "tags": [
+        "policy_limit"
+      ],
+      "input": "coffee with the team yesterday, 75 SAR",
+      "today": "2026-11-14",
+      "expected": {
+        "status": "ok",
+        "rejection_reason": null,
+        "policy_result": "needs_manager_approval",
+        "missing_fields": [],
+        "category": "meals",
+        "amount": 75,
+        "expense_date": "2026-11-13",
+        "nights": null,
+        "description_keywords": [
+          "coffee"
+        ]
+      },
+      "spec_ref": "FR-053, Clarification Q1, spec Revision 3"
     },
     {
       "id": "C-01",

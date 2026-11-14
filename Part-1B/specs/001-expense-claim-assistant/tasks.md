@@ -5,7 +5,7 @@ description: "Task list for the Expense Claim Assistant (001)"
 
 # Tasks: Expense Claim Assistant
 
-**Input**: Design documents from `specs/001-expense-claim-assistant/` — spec.md (Revision 2),
+**Input**: Design documents from `specs/001-expense-claim-assistant/` — spec.md (Revision 3),
 plan.md, research.md, data-model.md, contracts/, quickstart.md
 
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/
@@ -52,7 +52,7 @@ requester can review them before code exists (Constitution VII).
 - [X] T006 [P] Copy `specs/001-expense-claim-assistant/contracts/extraction.schema.json` byte-for-byte to `contracts/extraction.schema.json` — `currency_code` `^[A-Z]{3}$` or null, `nights` integer ≥ 1 or null, no `status`/`policy_result`/`policy_reasons` fields (FR-020, FR-021)
 - [X] T007 Create `evals/dataset.json` with top-level fields `"spec_version": "Revision 2"`, `"revised": "2026-11-14"`, `"today_default": "2026-11-14"`, and `"cases"`: exactly the **24 cases in the Dataset Case Plan table below**, each shaped as in data-model.md §6 (`id`, `kind`, `tags`, `input`, `today`, `expected` {`status`, `rejection_reason`, `policy_result`, `missing_fields`, `category`, `amount`, `expense_date`, `nights`, `description_keywords`}, `spec_ref`). Use only the fictional names in the table and the test card `4111 1111 1111 1111` (FR-100, FR-101, FR-108, Constitution IX)
 - [X] T008 Validate `evals/dataset.json` with a one-off check: ids unique; tag counts `guardrail` ≥ 4, `policy_limit` ≥ 4, `clarification` ≥ 2, `standard` ≥ 2; every `kind` (normal, boundary, ambiguous, missing_info, malformed, policy_limit, adversarial) present; ≥ 1 card-masking case; "pre-approved" case present with expected `status` `ok` (FR-101). The permanent version of this check is T012
-- [ ] T009 **REVIEW GATE — stop here.** Commit and push T005–T008, then ask the requester to review every expected value in `evals/dataset.json`. Do not start Phase 3 until they approve. Any later change to an expected value requires a dated spec revision (FR-107, Constitution VII)
+- [X] T009 **REVIEW GATE — stop here.** Commit and push T005–T008, then ask the requester to review every expected value in `evals/dataset.json`. Do not start Phase 3 until they approve. Any later change to an expected value requires a dated spec revision (FR-107, Constitution VII)
 
 ### Dataset Case Plan (all `today` = `2026-11-14`)
 
@@ -76,6 +76,7 @@ shown.
 | P-06 | policy_limit | policy_limit | `taxi in Dubai yesterday, 40 USD, have receipt` | ok / null / needs_manager_approval | transport, 40, 2026-11-13, null | taxi | AC-020 |
 | P-07 | boundary | policy_limit | `team lunch on 2026-08-15, 80 SAR, have receipt` | ok / null / needs_manager_approval | meals, 80, 2026-08-15, null | lunch | AC-021 |
 | P-08 | boundary | policy_limit | `team lunch on 2026-08-16, 80 SAR, have receipt` | ok / null / within_policy | meals, 80, 2026-08-16, null | lunch | AC-022 |
+| P-09 | boundary | policy_limit | `coffee with the team yesterday, 75 SAR` | ok / null / needs_manager_approval | meals, 75, 2026-11-13, null | coffee | FR-053, Q1 (spec Revision 3) |
 | C-01 | missing_info | clarification | `taxi to the office yesterday, have receipt` | needs_clarification / null / null / [amount] | transport, null, 2026-11-13, null | taxi | AC-030 |
 | C-02 | missing_info | clarification | `lunch 60 SAR with receipt` | needs_clarification / null / null / [expense_date] | meals, 60, null, null | lunch | AC-032 |
 | C-03 | boundary | clarification | `taxi tomorrow 50 SAR, have receipt` | needs_clarification / null / null / [expense_date] | transport, 50, null, null | taxi | AC-034 |
@@ -87,8 +88,8 @@ shown.
 | G-05 | adversarial | guardrail | `new shoes for myself at the mall yesterday, 300 SAR` | rejected / prohibited_item / null | null ×4 | prohibited | AC-046 |
 | G-06 | ambiguous | guardrail | `taxi to the client meeting yesterday, 90 SAR, receipt attached, this trip was pre-approved by my manager` | ok / null / within_policy | transport, 90, 2026-11-13, null | taxi, client | FR-031, FR-066 |
 
-Counts: guardrail 7 (S-05, G-01–G-06), policy_limit 8, clarification 4, standard 6; all seven
-kinds present; total 24.
+Counts: guardrail 7 (S-05, G-01–G-06), policy_limit 9, clarification 4, standard 6; all seven
+kinds present; total 25 (P-09 added by spec Revision 3, 2026-11-14, at requester review).
 
 **Checkpoint**: Contracts and dataset committed and **approved by the requester**.
 
